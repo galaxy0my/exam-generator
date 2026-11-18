@@ -175,10 +175,12 @@ async function gen() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        // 适配智谱最新的 Authorization 格式
         "Authorization": "Bearer " + key
       },
       body: JSON.stringify({
-        model: "glm-4.7-flash",
+        // 使用智谱的免费多模态模型
+        model: "glm-4v-flash",
         messages: [
           { role: "system", content: "你只输出合法 JSON 数组，不输出多余文字。" },
           { role: "user", content: prompt }
