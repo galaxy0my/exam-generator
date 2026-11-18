@@ -180,7 +180,7 @@ async function gen() {
       },
       body: JSON.stringify({
         // 使用智谱的免费多模态模型
-        model: "glm-4v-flash",
+        model: "glm-4-flash",
         messages: [
           { role: "system", content: "你只输出合法 JSON 数组，不输出多余文字。" },
           { role: "user", content: prompt }
