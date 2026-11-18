@@ -35,7 +35,7 @@
   .ans.show{display:block}
   .right{color:#34d399}
   .wrong{color:#f87171}
-  .bar{position:sticky;top:0;background:#0b1220;padding:12px 0;display:flex;gap:10px;flex-wrap:wrap;border-bottom:1px solid #1f2a3a;margin-bottom:12px}
+  .bar{position:sticky;top:0;background:#0b1220;padding:12px 0;display:flex;gap:10px;flex-wrap:wrap;border-bottom:1px solid #1f2a3a;margin-bottom:12px;z-index:10}
   .score-box{text-align:center;padding:10px;border-radius:10px;background:#111827;border:1px solid #1f2a3a;flex:1;min-width:100px}
   .score-num{font-size:1.4rem;color:#fbbf24}
 </style>
@@ -48,11 +48,24 @@
     <div class="row">
       <div>
         <label>学科</label>
-        <select id="subject">
+        <select id="subjectPreset" onchange="toggleCustom()">
+          <option value="">请选择学科</option>
           <option value="数学">数学</option>
+          <option value="英语">英语</option>
+          <option value="语文">语文</option>
           <option value="计算机">计算机</option>
+          <option value="历史">历史</option>
+          <option value="道法">道法</option>
+          <option value="马原">马克思主义基本原理</option>
+          <option value="法律">法律</option>
+          <option value="政治">政治</option>
+          <option value="物理">物理</option>
+          <option value="化学">化学</option>
+          <option value="生物">生物</option>
           <option value="学生手册">学生手册</option>
+          <option value="__custom__">其他（手动输入）</option>
         </select>
+        <input type="text" id="subjectCustom" placeholder="输入学科名称，如：宏观经济学" style="display:none;margin-top:6px">
       </div>
       <div>
         <label>难度</label>
@@ -68,12 +81,13 @@
           <option value="10">10 题</option>
           <option value="20" selected>20 题</option>
           <option value="30">30 题</option>
+          <option value="50">50 题</option>
         </select>
       </div>
     </div>
 
     <label>资料内容（可选）</label>
-    <textarea id="source" placeholder="粘贴教材、课件、学生手册、笔记等内容。留空则按学科常识出题。"></textarea>
+    <textarea id="source" placeholder="粘贴教材、课件、笔记、学生手册、法律条文等内容。留空则按学科常识出题。"></textarea>
     <div class="hint">有资料会更准；没有资料也能生成，但可能不够贴合你的课本。</div>
 
     <div class="row" style="margin-top:10px">
@@ -95,62 +109,52 @@
 </div>
 
 <script>
-const SUBJECT_RULES = {
-  "数学": {
-    types: [
-      { name: "选择题", count: 4, score: 5 },
-      { name: "填空题", count: 4, score: 5 },
-      { name: "计算题", count: 2, score: 10 },
-      { name: "应用题", count: 1, score: 10 }
-    ],
-    prompt: "数学试卷必须包含：选择题、填空题、计算题、应用题。每道题必须给出标准答案和详细解题步骤。"
-  },
-  "计算机": {
-    types: [
-      { name: "选择题", count: 5, score: 4 },
-      { name: "填空题", count: 3, score: 4 },
-      { name: "判断题", count: 3, score: 4 },
-      { name: "简答题", count: 2, score: 10 }
-    ],
-    prompt: "计算机试卷必须包含：选择题、填空题、判断题、简答题。概念题要准确，命令/代码题要可运行。"
-  },
-  "学生手册": {
-    types: [
-      { name: "选择题", count: 5, score: 4 },
-      { name: "填空题", count: 3, score: 4 },
-      { name: "判断题", count: 3, score: 4 },
-      { name: "简答题", count: 2, score: 10 }
-    ],
-    prompt: "学生手册试卷必须围绕校规、纪律、奖惩、考勤、宿舍、考试纪律等内容出题，不能编造条款。"
-  }
-};
+function toggleCustom() {
+  const sel = document.getElementById("subjectPreset");
+  const custom = document.getElementById("subjectCustom");
+  custom.style.display = sel.value === "__custom__" ? "block" : "none";
+}
+
+function getSubject() {
+  const sel = document.getElementById("subjectPreset").value;
+  if (sel === "__custom__") return document.getElementById("subjectCustom").value.trim();
+  return sel;
+}
 
 function buildPrompt() {
-  const subject = document.getElementById("subject").value;
+  const subject = getSubject();
+  if (!subject) { alert("请选择或输入学科"); return null; }
+
   const level = document.getElementById("level").value;
   const count = parseInt(document.getElementById("count").value);
   const source = document.getElementById("source").value.trim();
-  const rule = SUBJECT_RULES[subject];
 
-  let p = `你是一名出题老师。请生成一份${subject}试卷，难度${level}，共${count}题。\n\n`;
-  p += rule.prompt + "\n\n";
+  let p = `你是一名出题老师。请生成一份「${subject}」试卷，难度${level}，共${count}题。\n\n`;
+  p += `请根据该学科的常见考试形式，自动选择合适的题型组合，例如选择题、填空题、判断题、简答题、计算题、应用题、名词解释、翻译题、作文题、案例分析题等。\n\n`;
 
   if (source) {
     p += `资料内容：\n${source}\n\n`;
-    p += `出题要求：\n1. 只能根据资料内容出题，不要编造资料里没有的信息。\n2. 每道题必须给出：题型、题干、选项（如有）、正确答案、解析。\n3. 数学题必须写清步骤。\n4. 学生手册题必须对应具体条款或规定。\n5. 计算机题要区分概念、命令、原理。\n`;
+    p += `出题要求：\n`;
+    p += `1. 只能根据资料内容出题，不要编造资料里没有的信息。\n`;
+    p += `2. 每道题必须给出：题型、题干、选项（如有）、正确答案、解析。\n`;
+    p += `3. 数学/物理/化学类题目必须写清解题步骤。\n`;
+    p += `4. 英语题可以包含翻译、语法、阅读、词汇等题型。\n`;
+    p += `5. 法律/马原/道法类题目可以包含概念辨析、案例分析、简答。\n`;
+    p += `6. 历史类题目注意时间、事件、人物的准确性。\n`;
+    p += `7. 学生手册类题目必须对应具体条款或规定。\n`;
   } else {
-    p += `如果没有资料，就按${subject}学科常识出题，但题目必须合理、准确。\n`;
+    p += `如果没有资料，就按「${subject}」学科常识出题，题目必须合理、准确。\n`;
   }
 
   p += `\n输出格式必须是合法 JSON 数组，每个题目对象包含：\n`;
-  p += `type: "choice" | "fill" | "judge" | "short" | "calc" | "app"\n`;
-  p += `section: 题型名称，如"选择题"\n`;
-  p += `score: 分值\n`;
+  p += `type: 题型英文标识，如 "choice" | "fill" | "judge" | "short" | "calc" | "app" | "translate" | "essay" | "case" | "term"\n`;
+  p += `section: 题型中文名称，如"选择题"、"翻译题"、"案例分析"\n`;
+  p += `score: 分值（数字）\n`;
   p += `question: 题干\n`;
-  p += `options: 选项数组，非选择题可留空\n`;
+  p += `options: 选项数组，非选择题可留空数组 []\n`;
   p += `answer: 正确答案\n`;
   p += `explain: 解析\n\n`;
-  p += `只输出 JSON，不要输出其他文字。`;
+  p += `只输出 JSON 数组，不要输出其他文字。`;
   return p;
 }
 
@@ -158,6 +162,10 @@ async function gen() {
   const key = document.getElementById("key").value.trim();
   if (!key) return alert("请先填写 DeepSeek API Key。");
 
+  const prompt = buildPrompt();
+  if (!prompt) return;
+
+  const subject = getSubject();
   const btn = document.querySelector(".primary");
   btn.disabled = true;
   btn.textContent = "生成中…";
@@ -170,21 +178,24 @@ async function gen() {
         "Authorization": "Bearer " + key
       },
       body: JSON.stringify({
-        model: "deepseek-flash",
+        model: "deepseek-chat",
         messages: [
-          { role: "system", content: "你只输出合法 JSON，不输出多余文字。" },
-          { role: "user", content: buildPrompt() }
-        ],
-        response_format: { type: "json_object" }
+          { role: "system", content: "你只输出合法 JSON 数组，不输出多余文字。" },
+          { role: "user", content: prompt }
+        ]
       })
     });
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.error?.message || "请求失败");
 
+    let raw = data.choices[0].message.content.trim();
+    // 清理可能的 markdown 代码块标记
+    raw = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "");
+
     let list;
     try {
-      list = JSON.parse(data.choices[0].message.content);
+      list = JSON.parse(raw);
     } catch {
       return alert("AI 返回格式异常，请重新生成。");
     }
@@ -193,7 +204,8 @@ async function gen() {
       return alert("没有生成题目，请调整资料或题量后重试。");
     }
 
-    render(list);
+    window._paper = list;
+    render(list, subject);
   } catch (e) {
     alert(e.message);
   } finally {
@@ -202,40 +214,42 @@ async function gen() {
   }
 }
 
-function render(list) {
+function render(list, subject) {
   const box = document.getElementById("paper");
   let html = `<div class="paper">`;
   html += `<div class="paper-head">`;
-  html += `<div><span class="tag">${document.getElementById("subject").value}</span><span class="tag">${document.getElementById("level").value}</span><span class="tag">${list.length} 题</span></div>`;
+  html += `<div><span class="tag">${subject}</span><span class="tag">${document.getElementById("level").value}</span><span class="tag">${list.length} 题</span></div>`;
   html += `<button class="ghost" onclick="submitPaper()">提交并评分</button>`;
   html += `</div>`;
 
   let curSection = "";
   list.forEach((q, i) => {
-    if (q.section && q.section !== curSection) {
-      curSection = q.section;
-      html += `<div class="section-title">${curSection}</div>`;
+    const section = q.section || "题目";
+    if (section !== curSection) {
+      curSection = section;
+      html += `<div class="section-title">${section}</div>`;
     }
     html += `<div class="q" data-idx="${i}">`;
     html += `<div class="q-head"><div><b>第 ${i + 1} 题</b></div><div class="q-score">${q.score ?? 0} 分</div></div>`;
     html += `<div>${q.question}</div>`;
 
-    if (q.type === "choice" && Array.isArray(q.options)) {
+    const t = (q.type || "").toLowerCase();
+    if (t === "choice" && Array.isArray(q.options) && q.options.length > 0) {
       html += `<div class="opts">`;
       q.options.forEach((o, oi) => {
         const val = String.fromCharCode(65 + oi);
         html += `<label><input type="radio" name="q${i}" value="${val}"> ${val}. ${o}</label>`;
       });
       html += `</div>`;
-    } else if (q.type === "fill") {
-      html += `<input type="text" name="q${i}" placeholder="填写答案">`;
-    } else if (q.type === "judge") {
+    } else if (t === "judge") {
       html += `<div class="opts">`;
       html += `<label><input type="radio" name="q${i}" value="正确"> 正确</label>`;
       html += `<label><input type="radio" name="q${i}" value="错误"> 错误</label>`;
       html += `</div>`;
+    } else if (t === "fill") {
+      html += `<input type="text" name="q${i}" placeholder="填写答案">`;
     } else {
-      html += `<textarea name="q${i}" placeholder="在此作答"></textarea>`;
+      html += `<textarea name="q${i}" rows="3" placeholder="在此作答"></textarea>`;
     }
 
     html += `<div class="ans" id="ans${i}">`;
@@ -251,31 +265,40 @@ function render(list) {
 }
 
 function submitPaper() {
-  const qs = document.querySelectorAll(".q");
+  const list = window._paper;
+  if (!list || !list.length) return alert("先生成试卷。");
+
   let total = 0, got = 0;
-  qs.forEach((el, i) => {
-    const idx = el.dataset.idx;
-    const ansEl = document.getElementById("ans" + idx);
-    const q = JSON.parse(window._paper?.[idx] ? JSON.stringify(window._paper[idx]) : "{}");
+  list.forEach((q, i) => {
     const score = Number(q.score) || 0;
     total += score;
+    const t = (q.type || "").toLowerCase();
 
     let user = "";
-    const radio = document.querySelector(`input[name="q${idx}"]:checked`);
-    const text = document.querySelector(`input[name="q${idx}"]`);
-    const area = document.querySelector(`textarea[name="q${idx}"]`);
-    if (radio) user = radio.value;
-    else if (text) user = text.value.trim();
-    else if (area) user = area.value.trim();
+    if (t === "choice" || t === "judge") {
+      const radio = document.querySelector(`input[name="q${i}"]:checked`);
+      if (radio) user = radio.value;
+    } else if (t === "fill") {
+      const inp = document.querySelector(`input[name="q${i}"]`);
+      if (inp) user = inp.value.trim();
+    } else {
+      const area = document.querySelector(`textarea[name="q${i}"]`);
+      if (area) user = area.value.trim();
+    }
 
     const right = String(q.answer ?? "").trim();
     const ok = right && user && user.toLowerCase() === right.toLowerCase();
     if (ok) got += score;
 
+    const ansEl = document.getElementById("ans" + i);
     ansEl.classList.add("show");
     const mark = ok ? '<span class="right">✓ 正确</span>' : '<span class="wrong">✗ 错误</span>';
     ansEl.insertAdjacentHTML("afterbegin", `<div style="margin-bottom:6px">${mark}</div>`);
   });
+
+  // 移除旧评分栏
+  const old = document.querySelector(".bar");
+  if (old) old.remove();
 
   const bar = document.createElement("div");
   bar.className = "bar";
@@ -285,7 +308,7 @@ function submitPaper() {
     <div class="score-box"><div class="score-num">${total ? Math.round(got / total * 100) : 0}%</div><div>正确率</div></div>
   `;
   const paper = document.querySelector(".paper");
-  if (!paper.querySelector(".bar")) paper.prepend(bar);
+  paper.prepend(bar);
 }
 
 function exportPaper() {
@@ -301,6 +324,7 @@ function exportPaper() {
 function reset() {
   document.getElementById("paper").innerHTML = "";
   document.getElementById("source").value = "";
+  window._paper = null;
 }
 </script>
 </body>
