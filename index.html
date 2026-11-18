@@ -92,8 +92,8 @@
 
     <div class="row" style="margin-top:10px">
       <div>
-        <label>DeepSeek API Key</label>
-        <input type="text" id="key" placeholder="sk-...">
+        <label>智谱 AI API Key (免费)</label>
+        <input type="text" id="key" placeholder="粘贴从智谱控制台获取的 Key">
         <div class="hint">Key 只存在浏览器里，不会上传到任何服务器。</div>
       </div>
     </div>
@@ -160,7 +160,7 @@ function buildPrompt() {
 
 async function gen() {
   const key = document.getElementById("key").value.trim();
-  if (!key) return alert("请先填写 DeepSeek API Key。");
+  if (!key) return alert("请先填写智谱 AI 的 API Key。");
 
   const prompt = buildPrompt();
   if (!prompt) return;
@@ -187,10 +187,9 @@ async function gen() {
     });
 
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message || "请求失败");
+    if (!res.ok) throw new Error(data.error?.message || "请求失败，请检查Key或余额");
 
     let raw = data.choices[0].message.content.trim();
-    // 清理可能的 markdown 代码块标记
     raw = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "");
 
     let list;
@@ -296,7 +295,6 @@ function submitPaper() {
     ansEl.insertAdjacentHTML("afterbegin", `<div style="margin-bottom:6px">${mark}</div>`);
   });
 
-  // 移除旧评分栏
   const old = document.querySelector(".bar");
   if (old) old.remove();
 
