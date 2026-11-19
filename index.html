@@ -142,6 +142,8 @@
         JUDGES.forEach(q => qList.push({...q, type: 'judge'}));
         
         allQuestions = qList;
+        wrongList = [];
+        score = 0;
         resetGame(qList);
     }
 
