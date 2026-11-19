@@ -3,71 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>智能出题器 (完美版)</title>
+<title>终极防呆出题器</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#0b1220;color:#e6edf3;font-family:-apple-system,"PingFang SC",sans-serif}
-.wrap{max-width:820px;margin:0 auto;padding:20px}
-h1{font-size:1.3rem;margin-bottom:12px}
-.card{background:#111827;border:1px solid #1f2a3a;border-radius:12px;padding:18px;margin-bottom:16px}
-label{display:block;margin:8px 0 4px;font-size:.9rem;color:#9ca3af}
-textarea{width:100%;min-height:400px;padding:10px;border-radius:8px;border:1px solid #2a3548;background:#0b1220;color:#e6edf3;font-size:.85rem;font-family:monospace;resize:vertical}
-.hint{font-size:.78rem;color:#6b7280;margin-top:4px}
-.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-.row>div{flex:1;min-width:120px}
-select,input[type="number"]{width:100%;padding:10px;border-radius:8px;border:1px solid #2a3548;background:#0b1220;color:#e6edf3}
-button{padding:10px 18px;border-radius:8px;border:none;cursor:pointer;font-weight:600;margin-right:10px;margin-top:12px}
-.primary{background:#2563eb;color:#fff}.primary:hover{background:#1d4ed8}
-.ghost{background:#1f2937;color:#e5e7eb;border:1px solid #374151}.ghost:hover{background:#374151}
-.q-item{background:#111827;border:1px solid #1f2a3a;border-radius:10px;padding:14px;margin-bottom:14px}
-.q-type{font-size:.78rem;color:#60a5fa;margin-bottom:4px}
-.opts label{display:block;padding:8px 12px;border-radius:8px;margin:4px 0;cursor:pointer}
-.opts label:hover{background:#1f2937}
-.opts input{margin-right:10px}
-.fill-input{width:100%;padding:8px;border-radius:6px;border:1px solid #2a3548;background:#0b1220;color:#e6edf3;margin-top:6px}
-.essay-area{width:100%;padding:8px;border-radius:6px;border:1px solid #2a3548;background:#0b1220;color:#e6edf3;min-height:80px;margin-top:6px;resize:vertical}
-.ans-area{margin-top:10px;padding:10px;background:#0b1220;border-radius:8px;display:none;font-size:.9rem}
-.ans-area.show{display:block}
-.right{color:#34d399;font-weight:bold}
-.wrong{color:#f87171;font-weight:bold}
-.score-bar{position:sticky;top:0;background:#0b1220;padding:14px 0;border-bottom:1px solid #1f2a3a;margin-bottom:14px;display:flex;gap:10px;z-index:10}
-.score-box{text-align:center;padding:10px;border-radius:10px;background:#111827;border:1px solid #1f2a3a;flex:1}
-.score-num{font-size:1.5rem;color:#fbbf24;font-weight:bold}
+*{box-sizing:border-box}body{margin:0;background:#0b1220;color:#e6edf3;font-family:-apple-system,"PingFang SC",sans-serif}.wrap{max-width:820px;margin:0 auto;padding:20px}h1{font-size:1.4rem;margin-bottom:16px}.card{background:#111827;border:1px solid #1f2a3a;border-radius:12px;padding:20px;margin-bottom:16px}label{display:block;margin:10px 0 6px;font-size:.9rem;color:#9ca3af}textarea{width:100%;min-height:250px;padding:12px;border-radius:8px;border:1px solid #2a3548;background:#0b1220;color:#e6edf3;font-size:.85rem;font-family:monospace;resize:vertical}.hint{font-size:.78rem;color:#6b7280;margin-top:6px}.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.row>div{flex:1;min-width:120px}input[type="number"]{width:100%;padding:10px;border-radius:8px;border:1px solid #2a3548;background:#0b1220;color:#e6edf3}button{padding:10px 18px;border-radius:8px;border:none;cursor:pointer;font-weight:600;margin-right:10px;margin-top:14px}.primary{background:#2563eb;color:#fff}.primary:hover{background:#1d4ed8}.ghost{background:#1f2937;color:#e5e7eb;border:1px solid #374151}.ghost:hover{background:#374151}.q-item{background:#111827;border:1px solid #1f2a3a;border-radius:10px;padding:16px;margin-bottom:14px}.q-type{font-size:.8rem;color:#60a5fa;margin-bottom:6px}.opts label{display:block;padding:10px 12px;border-radius:8px;margin:5px 0;cursor:pointer;border:1px solid transparent}.opts label:hover{background:#1f2937}.opts input{margin-right:10px}.fill-input{width:100%;padding:10px;border-radius:6px;border:1px solid #2a3548;background:#0b1220;color:#e6edf3;margin-top:8px}.essay-area{width:100%;padding:10px;border-radius:6px;border:1px solid #2a3548;background:#0b1220;color:#e6edf3;min-height:80px;margin-top:8px;resize:vertical}.ans-area{margin-top:12px;padding:12px;background:#0b1220;border-radius:8px;display:none;font-size:.9rem}.ans-area.show{display:block}.right{color:#34d399;font-weight:bold}.wrong{color:#f87171;font-weight:bold}.score-bar{position:sticky;top:0;background:#0b1220;padding:16px 0;border-bottom:1px solid #1f2a3a;margin-bottom:16px;display:flex;gap:10px;z-index:10}.score-box{text-align:center;padding:12px;border-radius:10px;background:#111827;border:1px solid #1f2a3a;flex:1}.score-num{font-size:1.6rem;color:#fbbf24;font-weight:bold}
 </style>
 </head>
 <body>
 <div class="wrap">
-<h1>智能出题器 (完美版)</h1>
+<h1>📚 终极防呆出题器</h1>
 <div class="card">
-<label>粘贴题库</label>
-<textarea id="rawInput" placeholder="直接粘贴整个题库文本，支持以下格式：
-
-一、选择题 (支持答案在括号内或末尾)
-1. 计算机的两个主要组成部分是（ C ）。
-A. 输入和输出 B. 存储和程序
-C. 硬件和软件 D. 显示器和打印机
-
-2. 第一代电子计算机的主要标志是（ ）。
-A. 机械式 B. 电子管 C. 集成电路 D. 晶体管
-答案：B
-
-二、判断题
-3. 计算机包含硬件和软件。（）
-答案：N
-
-三、填空题
-5. CPU由__和__组成。
-答案：运算器 控制器
-
-四、简答题
-7. 计算机硬件由哪些部分组成？
-答案：运算器、控制器、存储器、输入设备、输出设备"></textarea>
-<div class="hint">直接粘贴整段题库，系统自动识别选择题（带括号或答案）、判断题、填空题、简答题。</div>
+<label>📝 粘贴你的题库（支持任何排版）</label>
+<textarea id="rawInput" placeholder="直接把那坨字粘进来，哪怕没有空格、没有换行都行。
+例如：
+1. 计算机硬件是（C）A.键盘B.鼠标C.硬件和软件D.显示器。
+2. CPU是（C）核心。
+3. 内存断电丢失。（N）"></textarea>
+<div class="hint">系统会自动按题号切分，并把 A.B.C.D 选项和括号里的答案精准扣出来。</div>
 <div class="row">
-<div><label>抽取题量</label><input type="number" id="countInput" value="10" min="1"></div>
+<div><label>🎯 抽取题量</label><input type="number" id="countInput" value="10" min="1"></div>
 </div>
-<button class="primary" onclick="generate()">生成试卷</button>
-<button class="ghost" onclick="resetAll()">清空</button>
+<button class="primary" onclick="generate()">⚡ 生成试卷</button>
+<button class="ghost" onclick="resetAll()">🗑️ 清空</button>
 </div>
 <div id="paperArea"></div>
 </div>
@@ -75,97 +31,106 @@ A. 机械式 B. 电子管 C. 集成电路 D. 晶体管
 <script>
 let paper = [];
 
-// 清洗并识别单道题目的逻辑
-function processQuestionBlock(block) {
-    let lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    if (lines.length < 2) return null;
+// 核心切分逻辑：把一坨字精准切成题目
+function parseMegaText(text) {
+    let questions = [];
+    // 1. 按题号强行切分 (1. 2. 3. 或 1、 2、 3、)
+    let blocks = text.split(/(?=\d+[\.、]\s?)/);
 
-    let type = 'choice';
-    let question = '';
-    let options = [];
-    let answer = '';
+    blocks.forEach(block => {
+        block = block.trim();
+        if (!block) return;
 
-    // 1. 提取最后一行的“答案：...” (处理标准格式)
-    if (/^答案[：:]/.test(lines[lines.length - 1])) {
-        answer = lines.pop().replace(/^答案[：:]\s*/, '').trim().toUpperCase();
-    }
+        // 剥离题号
+        let content = block.replace(/^\d+[\.、]\s*/, '').trim();
+        
+        let answer = '';
+        let options = [];
+        let type = 'choice';
 
-    // 2. 第一行通常是题干
-    question = lines.shift();
-
-    // 3. 尝试从题干中提取答案（处理答案在括号内的格式，如：1. 题目（ C ））
-    let inBrace = question.match(/（\s*([A-N]?)\s*）/);
-    if (inBrace && inBrace[1]) {
-        answer = inBrace[1].toUpperCase();
-        // 清除括号内的答案字母，只保留空括号作为待选项
-        question = question.replace(/（\s*[A-N]\s*）/, '（  ）');
-    }
-
-    // 4. 分析剩余的行：判断是选项、填空还是简答
-    let optLines = [];
-    lines.forEach(l => {
-        // 如果这一行包含 "X. " 或 "X、" (如 A. B. C.)，视为选项
-        if (/^[A-D][\.、]\s/.test(l)) {
-            optLines.push(l);
+        // 2. 寻找答案：先看括号里有没有写答案
+        let inBrace = content.match(/（\s*([A-N]?)\s*）/i);
+        if (inBrace && inBrace[1]) {
+            answer = inBrace[1].toUpperCase();
+            content = content.replace(/（\s*[A-N]\s*）/i, '（  ）'); // 还原成空括号
         } else {
-            // 如果不是选项，可能是换行的题干或简答题的长答案
-            question += ' ' + l;
+            // 如果没在括号里找，看末尾有没有“答案：C”
+            let ansEnd = content.match(/答案[：:]\s*([A-N]?)\s*$/i);
+            if (ansEnd) {
+                answer = ansEnd[1].toUpperCase();
+                content = content.replace(/答案[：:]\s*[A-N]?\s*$/i, '').trim();
+            }
         }
+
+        // 3. 极度暴力的选项提取（专门对付挤在一起的字）
+        // 只要有 A. 或 B. 或 C. 这种格式，一律强行切开
+        let optParts = content.split(/\s+([A-F][\.、]\s?)/);
+        
+        if (optParts.length > 1) {
+            let stem = optParts[0].trim();
+            if (stem.length > 0 && !stem.includes('A.') && !stem.includes('B.')) {
+                // 前半部分是题干
+                content = stem;
+                
+                let rest = optParts.slice(2).join('');
+                // 再次切分选项
+                let opts = rest.split(/\s+([A-F][\.、]\s?)/);
+                for (let i = 1; i < opts.length; i += 2) {
+                    let key = opts[i].replace(/[\.、\s]/g, '');
+                    let val = opts[i + 1].trim();
+                    if (key.length === 1 && val.length > 0) {
+                        options.push({ key, text: val });
+                    }
+                }
+            }
+        }
+
+        // 4. 最终判断题型
+        if (!answer) return; // 找不到答案直接丢弃
+
+        if (['Y', 'N', '正确', '错误'].includes(answer)) {
+            type = 'judge';
+        } else if (answer.length > 0 && options.length === 0) {
+            type = content.includes('__') ? 'fill' : 'essay';
+        }
+
+        questions.push({
+            question: content,
+            options: options,
+            answer: answer,
+            type: type,
+            score: 5
+        });
     });
 
-    // 最终确定题型
-    if (['Y', 'N', '正确', '错误'].includes(answer)) {
-        type = 'judge';
-    } else if (answer.length > 0 && optLines.length > 0) {
-        type = 'choice';
-        options = optLines;
-    } else if (answer.length > 0 && !optLines.length) {
-        // 有答案，但没有 A. B. C. D. 选项
-        if (question.includes('__')) {
-            type = 'fill';
-        } else {
-            type = 'essay';
-        }
-    }
-
-    // 如果最终没能提取到答案，说明格式不对，放弃这道题
-    if (!answer && type !== 'essay') return null;
-
-    return { type, question, options, answer, score: 5 };
+    return questions;
 }
 
 function generate() {
     const text = document.getElementById('rawInput').value;
-    // 按题号拆分题库 (如：1. 2. 3.)
-    const blocks = text.split(/(?=\d+[\.、]\s)/);
-    
-    let questions = [];
-    blocks.forEach(block => {
-        let q = processQuestionBlock(block);
-        if (q) questions.push(q);
-    });
-
-    if (!questions.length) return alert('没有识别到题目，请检查格式！');
+    const questions = parseMegaText(text);
+    if (!questions.length) return alert('依然没能识别出题目！请确保文本中包含“1.”、“2.”这样的题号。');
 
     const count = parseInt(document.getElementById('countInput').value) || 10;
+    // 随机打乱
     questions.sort(() => Math.random() - 0.5);
     paper = questions.slice(0, count);
     render();
 }
 
 function render() {
-    let html = '<div style="margin-bottom:10px"><button class="ghost" onclick="submit()">提交评分</button></div>';
+    let html = '<div style="margin-bottom:12px"><button class="ghost" onclick="submit()">✅ 提交并自动评分</button></div>';
     
     paper.forEach((q, i) => {
-        const typeLabel = {choice:'选择题', judge:'判断题', fill:'填空题', essay:'简答题'}[q.type];
+        const typeLabel = { choice: '选择题', judge: '判断题', fill: '填空题', essay: '简答题' }[q.type];
         html += `<div class="q-item">
-            <div class="q-type">${typeLabel}（${q.score}分）</div>
-            <div style="margin-bottom:8px">${i+1}. ${q.question}</div>`;
+            <div class="q-type">第${i + 1}题：${typeLabel}（${q.score}分）</div>
+            <div style="margin-bottom:10px">${q.question}</div>`;
         
         if (q.type === 'choice') {
             html += '<div class="opts">';
             q.options.forEach(opt => {
-                html += `<label><input type="radio" name="q${i}" value="${opt.charAt(0)}"> ${opt}</label>`;
+                html += `<label><input type="radio" name="q${i}" value="${opt.key}"> ${opt.key}. ${opt.text}</label>`;
             });
             html += '</div>';
         } else if (q.type === 'judge') {
@@ -174,16 +139,16 @@ function render() {
             html += `<label><input type="radio" name="q${i}" value="N"> N (错误)</label>`;
             html += '</div>';
         } else if (q.type === 'fill') {
-            html += `<input class="fill-input" id="input_q${i}" placeholder="在此输入答案">`;
+            html += `<input class="fill-input" id="input_q${i}" placeholder="请输入填空内容">`;
         } else if (q.type === 'essay') {
-            html += `<textarea class="essay-area" id="input_q${i}" placeholder="在此输入答案"></textarea>`;
+            html += `<textarea class="essay-area" id="input_q${i}" placeholder="请输入简答内容"></textarea>`;
         }
         
         html += `<div class="ans-area" id="ans${i}"></div></div>`;
     });
     
     document.getElementById('paperArea').innerHTML = html;
-    document.getElementById('paperArea').scrollIntoView({behavior:'smooth'});
+    document.getElementById('paperArea').scrollIntoView({ behavior: 'smooth' });
 }
 
 function submit() {
@@ -200,7 +165,6 @@ function submit() {
         
         let ok = false;
         if (q.type === 'essay') {
-            // 简答题：只要包含了答案中的关键词就算对
             const keywords = q.answer.split(/[,，、]/).map(k => k.trim()).filter(k => k.length > 0);
             ok = keywords.some(k => val.includes(k));
         } else {
@@ -212,8 +176,8 @@ function submit() {
         const el = document.getElementById(`ans${i}`);
         el.classList.add('show');
         el.innerHTML = ok 
-            ? `<span class="right">✓ 正确</span> 答案：${q.answer}`
-            : `<span class="wrong">✗ 错误</span> 答案：${q.answer}`;
+            ? `<span class="right">✅ 正确</span> &nbsp;正确答案：${q.answer}`
+            : `<span class="wrong">❌ 错误</span> &nbsp;正确答案：${q.answer}`;
     });
     
     const pct = total ? Math.round(got / total * 100) : 0;
@@ -226,7 +190,7 @@ function submit() {
     if (!document.querySelector('.score-bar')) {
         document.querySelector('.wrap').insertAdjacentHTML('afterbegin', bar);
     }
-    window.scrollTo({top:0, behavior:'smooth'});
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function resetAll() {
