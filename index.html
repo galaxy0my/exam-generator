@@ -3,201 +3,158 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>终极防呆出题器</title>
+<title>闯关答题器</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#0b1220;color:#e6edf3;font-family:-apple-system,"PingFang SC",sans-serif}.wrap{max-width:820px;margin:0 auto;padding:20px}h1{font-size:1.4rem;margin-bottom:16px}.card{background:#111827;border:1px solid #1f2a3a;border-radius:12px;padding:20px;margin-bottom:16px}label{display:block;margin:10px 0 6px;font-size:.9rem;color:#9ca3af}textarea{width:100%;min-height:250px;padding:12px;border-radius:8px;border:1px solid #2a3548;background:#0b1220;color:#e6edf3;font-size:.85rem;font-family:monospace;resize:vertical}.hint{font-size:.78rem;color:#6b7280;margin-top:6px}.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.row>div{flex:1;min-width:120px}input[type="number"]{width:100%;padding:10px;border-radius:8px;border:1px solid #2a3548;background:#0b1220;color:#e6edf3}button{padding:10px 18px;border-radius:8px;border:none;cursor:pointer;font-weight:600;margin-right:10px;margin-top:14px}.primary{background:#2563eb;color:#fff}.primary:hover{background:#1d4ed8}.ghost{background:#1f2937;color:#e5e7eb;border:1px solid #374151}.ghost:hover{background:#374151}.q-item{background:#111827;border:1px solid #1f2a3a;border-radius:10px;padding:16px;margin-bottom:14px}.q-type{font-size:.8rem;color:#60a5fa;margin-bottom:6px}.opts label{display:block;padding:10px 12px;border-radius:8px;margin:5px 0;cursor:pointer;border:1px solid transparent}.opts label:hover{background:#1f2937}.opts input{margin-right:10px}.fill-input{width:100%;padding:10px;border-radius:6px;border:1px solid #2a3548;background:#0b1220;color:#e6edf3;margin-top:8px}.essay-area{width:100%;padding:10px;border-radius:6px;border:1px solid #2a3548;background:#0b1220;color:#e6edf3;min-height:80px;margin-top:8px;resize:vertical}.ans-area{margin-top:12px;padding:12px;background:#0b1220;border-radius:8px;display:none;font-size:.9rem}.ans-area.show{display:block}.right{color:#34d399;font-weight:bold}.wrong{color:#f87171;font-weight:bold}.score-bar{position:sticky;top:0;background:#0b1220;padding:16px 0;border-bottom:1px solid #1f2a3a;margin-bottom:16px;display:flex;gap:10px;z-index:10}.score-box{text-align:center;padding:12px;border-radius:10px;background:#111827;border:1px solid #1f2a3a;flex:1}.score-num{font-size:1.6rem;color:#fbbf24;font-weight:bold}
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #0b1220; color: #e6edf3; font-family: -apple-system, "PingFang SC", sans-serif; display: flex; justify-content: center; min-height: 100vh; }
+    .wrap { max-width: 650px; width: 100%; padding: 20px; margin-top: 40px; }
+    .card { background: #111827; border: 1px solid #1f2a3a; border-radius: 12px; padding: 24px; }
+    h1 { font-size: 1.4rem; margin-bottom: 16px; text-align: center; }
+    label { display: block; margin-bottom: 8px; font-size: .9rem; color: #9ca3af; }
+    textarea { width: 100%; min-height: 250px; padding: 12px; border-radius: 8px; border: 1px solid #2a3548; background: #0b1220; color: #e6edf3; font-size: .85rem; resize: vertical; outline: none; }
+    .btn-row { display: flex; gap: 10px; margin-top: 20px; }
+    button { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 1rem; }
+    .primary { background: #2563eb; color: #fff; }
+    .primary:hover { background: #1d4ed8; }
+    .game-area { display: none; background: #111827; border: 1px solid #1f2a3a; border-radius: 12px; padding: 24px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .header .info { color: #9ca3af; font-size: .9rem; }
+    .q-content { font-size: 1.1rem; line-height: 1.6; margin-bottom: 24px; font-weight: 600; }
+    .opts { display: flex; flex-direction: column; gap: 10px; }
+    .opt-btn { background: #1e293b; border: 1px solid #334155; padding: 14px 16px; border-radius: 8px; text-align: left; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; font-size: 1rem; }
+    .opt-btn:hover { background: #2563eb; border-color: #3b82f6; }
+    .opt-btn.correct { background: #064e3b; border-color: #10b981; }
+    .opt-btn.wrong { background: #7f1d1d; border-color: #ef4444; }
+    .judge-btns { display: flex; gap: 16px; }
+    .judge-btns .opt-btn { flex: 1; text-align: center; justify-content: center; }
+    .hint-text { margin-top: 16px; color: #fbbf24; font-size: .95rem; display: none; }
 </style>
 </head>
 <body>
 <div class="wrap">
-<h1>📚 终极防呆出题器</h1>
-<div class="card">
-<label>📝 粘贴你的题库（支持任何排版）</label>
-<textarea id="rawInput" placeholder="直接把那坨字粘进来，哪怕没有空格、没有换行都行。
-例如：
-1. 计算机硬件是（C）A.键盘B.鼠标C.硬件和软件D.显示器。
-2. CPU是（C）核心。
-3. 内存断电丢失。（N）"></textarea>
-<div class="hint">系统会自动按题号切分，并把 A.B.C.D 选项和括号里的答案精准扣出来。</div>
-<div class="row">
-<div><label>🎯 抽取题量</label><input type="number" id="countInput" value="10" min="1"></div>
-</div>
-<button class="primary" onclick="generate()">⚡ 生成试卷</button>
-<button class="ghost" onclick="resetAll()">🗑️ 清空</button>
-</div>
-<div id="paperArea"></div>
+    <div class="card" id="startScreen">
+        <h1>🎯 闯关答题器</h1>
+        <label>粘贴你的题库</label>
+        <textarea id="inputText" placeholder="直接把题库粘进来即可。"></textarea>
+        <div class="btn-row">
+            <button class="primary" onclick="startGame()">开始闯关</button>
+        </div>
+    </div>
+
+    <div class="game-area" id="gameScreen">
+        <div class="header">
+            <div class="info" id="progressText">第 1 / 10 题</div>
+            <div class="info" id="scoreText">得分：0</div>
+        </div>
+        <div class="q-content" id="questionText"></div>
+        <div class="opts" id="optionsContainer"></div>
+        <div class="hint-text" id="hintText">❌ 答错了，请重新选择正确答案</div>
+    </div>
 </div>
 
 <script>
-let paper = [];
-
-// 核心切分逻辑：把一坨字精准切成题目
-function parseMegaText(text) {
     let questions = [];
-    // 1. 按题号强行切分 (1. 2. 3. 或 1、 2、 3、)
-    let blocks = text.split(/(?=\d+[\.、]\s?)/);
+    let currentIndex = 0;
+    let score = 0;
+    let isAnswered = false;
 
-    blocks.forEach(block => {
-        block = block.trim();
-        if (!block) return;
-
-        // 剥离题号
-        let content = block.replace(/^\d+[\.、]\s*/, '').trim();
-        
-        let answer = '';
-        let options = [];
-        let type = 'choice';
-
-        // 2. 寻找答案：先看括号里有没有写答案
-        let inBrace = content.match(/（\s*([A-N]?)\s*）/i);
-        if (inBrace && inBrace[1]) {
-            answer = inBrace[1].toUpperCase();
-            content = content.replace(/（\s*[A-N]\s*）/i, '（  ）'); // 还原成空括号
-        } else {
-            // 如果没在括号里找，看末尾有没有“答案：C”
-            let ansEnd = content.match(/答案[：:]\s*([A-N]?)\s*$/i);
-            if (ansEnd) {
-                answer = ansEnd[1].toUpperCase();
-                content = content.replace(/答案[：:]\s*[A-N]?\s*$/i, '').trim();
+    function parseQuestions(text) {
+        let qList = [];
+        const regex = /(\d+)[\.、]\s*(.*?答案[：:]?[（(]\s*([A-N]?)\s*[）)])/gis;
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+            let fullContent = match[2].trim();
+            let answer = match[3].toUpperCase();
+            let options = [];
+            let optRegex = /([A-D][\.、]?)\s*([^A-D\.]+)/g;
+            let optMatch;
+            let contentWithoutOpts = fullContent;
+            while ((optMatch = optRegex.exec(fullContent)) !== null) {
+                options.push({ key: optMatch[1], text: optMatch[2].trim() });
+                contentWithoutOpts = contentWithoutOpts.replace(optMatch[0], '');
             }
-        }
-
-        // 3. 极度暴力的选项提取（专门对付挤在一起的字）
-        // 只要有 A. 或 B. 或 C. 这种格式，一律强行切开
-        let optParts = content.split(/\s+([A-F][\.、]\s?)/);
-        
-        if (optParts.length > 1) {
-            let stem = optParts[0].trim();
-            if (stem.length > 0 && !stem.includes('A.') && !stem.includes('B.')) {
-                // 前半部分是题干
-                content = stem;
-                
-                let rest = optParts.slice(2).join('');
-                // 再次切分选项
-                let opts = rest.split(/\s+([A-F][\.、]\s?)/);
-                for (let i = 1; i < opts.length; i += 2) {
-                    let key = opts[i].replace(/[\.、\s]/g, '');
-                    let val = opts[i + 1].trim();
-                    if (key.length === 1 && val.length > 0) {
-                        options.push({ key, text: val });
-                    }
-                }
+            let type = 'choice';
+            if(['Y', 'N', '正确', '错误'].includes(answer)) {
+                type = 'judge';
             }
-        }
-
-        // 4. 最终判断题型
-        if (!answer) return; // 找不到答案直接丢弃
-
-        if (['Y', 'N', '正确', '错误'].includes(answer)) {
-            type = 'judge';
-        } else if (answer.length > 0 && options.length === 0) {
-            type = content.includes('__') ? 'fill' : 'essay';
-        }
-
-        questions.push({
-            question: content,
-            options: options,
-            answer: answer,
-            type: type,
-            score: 5
-        });
-    });
-
-    return questions;
-}
-
-function generate() {
-    const text = document.getElementById('rawInput').value;
-    const questions = parseMegaText(text);
-    if (!questions.length) return alert('依然没能识别出题目！请确保文本中包含“1.”、“2.”这样的题号。');
-
-    const count = parseInt(document.getElementById('countInput').value) || 10;
-    // 随机打乱
-    questions.sort(() => Math.random() - 0.5);
-    paper = questions.slice(0, count);
-    render();
-}
-
-function render() {
-    let html = '<div style="margin-bottom:12px"><button class="ghost" onclick="submit()">✅ 提交并自动评分</button></div>';
-    
-    paper.forEach((q, i) => {
-        const typeLabel = { choice: '选择题', judge: '判断题', fill: '填空题', essay: '简答题' }[q.type];
-        html += `<div class="q-item">
-            <div class="q-type">第${i + 1}题：${typeLabel}（${q.score}分）</div>
-            <div style="margin-bottom:10px">${q.question}</div>`;
-        
-        if (q.type === 'choice') {
-            html += '<div class="opts">';
-            q.options.forEach(opt => {
-                html += `<label><input type="radio" name="q${i}" value="${opt.key}"> ${opt.key}. ${opt.text}</label>`;
+            qList.push({
+                question: contentWithoutOpts.replace(/答案[：:]（([）)]/, '').trim(),
+                options: options,
+                answer: answer,
+                type: type
             });
-            html += '</div>';
-        } else if (q.type === 'judge') {
-            html += '<div class="opts">';
-            html += `<label><input type="radio" name="q${i}" value="Y"> Y (正确)</label>`;
-            html += `<label><input type="radio" name="q${i}" value="N"> N (错误)</label>`;
-            html += '</div>';
-        } else if (q.type === 'fill') {
-            html += `<input class="fill-input" id="input_q${i}" placeholder="请输入填空内容">`;
-        } else if (q.type === 'essay') {
-            html += `<textarea class="essay-area" id="input_q${i}" placeholder="请输入简答内容"></textarea>`;
         }
-        
-        html += `<div class="ans-area" id="ans${i}"></div></div>`;
-    });
-    
-    document.getElementById('paperArea').innerHTML = html;
-    document.getElementById('paperArea').scrollIntoView({ behavior: 'smooth' });
-}
-
-function submit() {
-    let total = 0, got = 0;
-    paper.forEach((q, i) => {
-        total += q.score;
-        let val = '';
-        
-        if (q.type === 'choice' || q.type === 'judge') {
-            val = document.querySelector(`input[name="q${i}"]:checked`)?.value || '';
-        } else {
-            val = document.getElementById(`input_q${i}`)?.value?.trim() || '';
-        }
-        
-        let ok = false;
-        if (q.type === 'essay') {
-            const keywords = q.answer.split(/[,，、]/).map(k => k.trim()).filter(k => k.length > 0);
-            ok = keywords.some(k => val.includes(k));
-        } else {
-            ok = val.toUpperCase() === q.answer.toUpperCase();
-        }
-        
-        if (ok) got += q.score;
-        
-        const el = document.getElementById(`ans${i}`);
-        el.classList.add('show');
-        el.innerHTML = ok 
-            ? `<span class="right">✅ 正确</span> &nbsp;正确答案：${q.answer}`
-            : `<span class="wrong">❌ 错误</span> &nbsp;正确答案：${q.answer}`;
-    });
-    
-    const pct = total ? Math.round(got / total * 100) : 0;
-    const bar = `<div class="score-bar">
-        <div class="score-box"><div class="score-num">${got}</div>得分</div>
-        <div class="score-box"><div class="score-num">${total}</div>总分</div>
-        <div class="score-box"><div class="score-num">${pct}%</div>正确率</div>
-    </div>`;
-    
-    if (!document.querySelector('.score-bar')) {
-        document.querySelector('.wrap').insertAdjacentHTML('afterbegin', bar);
+        return qList;
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
 
-function resetAll() {
-    document.getElementById('rawInput').value = '';
-    document.getElementById('paperArea').innerHTML = '';
-    paper = [];
-}
+    function startGame() {
+        const text = document.getElementById('inputText').value;
+        questions = parseQuestions(text);
+        if(questions.length === 0) {
+            alert("没识别到题目！请检查题库格式。");
+            return;
+        }
+        questions.sort(() => Math.random() - 0.5);
+        document.getElementById('startScreen').style.display = 'none';
+        document.getElementById('gameScreen').style.display = 'block';
+        currentIndex = 0;
+        score = 0;
+        showQuestion();
+    }
+
+    function showQuestion() {
+        isAnswered = false;
+        const q = questions[currentIndex];
+        document.getElementById('progressText').innerText = `第 ${currentIndex + 1} / ${questions.length} 题`;
+        document.getElementById('scoreText').innerText = `得分：${score}`;
+        document.getElementById('hintText').style.display = 'none';
+        document.getElementById('questionText').innerText = q.question;
+        const container = document.getElementById('optionsContainer');
+        container.innerHTML = '';
+        container.className = 'opts';
+        if(q.type === 'judge') {
+            container.classList.add('judge-btns');
+            container.innerHTML = `
+                <div class="opt-btn" onclick="checkAnswer(this, 'Y')">✅ 正确 (Y)</div>
+                <div class="opt-btn" onclick="checkAnswer(this, 'N')">❌ 错误 (N)</div>
+            `;
+        } else {
+            q.options.forEach((opt) => {
+                const div = document.createElement('div');
+                div.className = 'opt-btn';
+                div.innerText = `${opt.key}. ${opt.text}`;
+                div.onclick = function() { checkAnswer(this, opt.key); };
+                container.appendChild(div);
+            });
+        }
+    }
+
+    function checkAnswer(btn, userAnswer) {
+        if(isAnswered) return;
+        const q = questions[currentIndex];
+        const correct = q.answer.toUpperCase() === userAnswer.toUpperCase();
+
+        if(correct) {
+            isAnswered = true;
+            btn.classList.add('correct');
+            score += 10;
+            document.getElementById('scoreText').innerText = `得分：${score}`;
+            // 答对后自动进入下一题
+            setTimeout(() => {
+                currentIndex++;
+                if(currentIndex >= questions.length) {
+                    alert(`🎉 闯关完成！最终得分：${score}`);
+                    location.reload();
+                } else {
+                    showQuestion();
+                }
+            }, 600);
+        } else {
+            // 答错：标红，提示重新选，不进入下一题
+            btn.classList.add('wrong');
+            document.getElementById('hintText').style.display = 'block';
+        }
+    }
 </script>
 </body>
 </html>
