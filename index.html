@@ -3,190 +3,169 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>闯关答题器 - 第一章 计算机系统概述</title>
+<title>闯关答题器 - 错题回顾版</title>
 <style>
-    /* 页面基础重置 */
     * { box-sizing: border-box; }
     body { margin: 0; background: #0b1220; color: #e6edf3; font-family: -apple-system, "PingFang SC", sans-serif; display: flex; justify-content: center; min-height: 100vh; }
     .wrap { max-width: 680px; width: 100%; padding: 20px; margin: 40px auto; }
-    
-    /* 卡片通用样式 */
     .card { background: #111827; border: 1px solid #1f2a3a; border-radius: 12px; padding: 30px 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
     h1 { font-size: 1.5rem; margin-bottom: 10px; text-align: center; letter-spacing: 1px; }
     .sub-title { text-align: center; color: #9ca3af; font-size: 0.9rem; margin-bottom: 25px; }
-    
-    /* 准备界面 */
     .btn-primary { width: 100%; padding: 14px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 1rem; background: #2563eb; color: #fff; transition: 0.2s; margin-top: 20px; }
     .btn-primary:hover { background: #1d4ed8; }
-    
-    /* 答题界面 */
     .game-area { display: none; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #1f2a3a; padding-bottom: 15px; }
     .header .info { font-size: 0.95rem; color: #9ca3af; }
     .header .score { color: #fbbf24; font-weight: bold; }
     .q-content { font-size: 1.15rem; line-height: 1.6; margin-bottom: 25px; font-weight: 500; }
     
-    /* 选项区 */
     .opts { display: flex; flex-direction: column; gap: 12px; }
     .opt-btn { background: #1e293b; border: 1px solid #334155; padding: 15px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; font-size: 1rem; }
     .opt-btn:hover { background: #2563eb; border-color: #3b82f6; }
     .opt-btn.correct { background: #064e3b; border-color: #10b981; color: #34d399; }
     .opt-btn.wrong { background: #7f1d1d; border-color: #ef4444; color: #f87171; }
     
-    /* 判断题排版 */
     .judge-btns { display: flex; gap: 12px; }
     .judge-btns .opt-btn { flex: 1; justify-content: center; }
-
-    /* 底部按钮区 */
+    
     .bottom-btns { display: flex; gap: 12px; margin-top: 20px; }
     .btn-skip { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #4b5563; background: #1f2937; color: #9ca3af; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
     .btn-skip:hover { background: #374151; color: #e6edf3; }
     .btn-reveal { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #d97706; background: rgba(217, 119, 6, 0.1); color: #fbbf24; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
     .btn-reveal:hover { background: rgba(217, 119, 6, 0.2); }
-
-    /* 提示文字 */
+    
     .hint-text { margin-top: 15px; color: #fbbf24; font-size: 0.95rem; display: none; text-align: center; background: rgba(251, 191, 36, 0.1); padding: 10px; border-radius: 6px; }
     .answer-reveal { margin-top: 15px; color: #34d399; font-size: 0.95rem; display: none; text-align: center; background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 6px; }
+    
+    .fill-input-wrap { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+    .fill-input-wrap input { width: 100%; padding: 15px; border-radius: 8px; border: 1px solid #334155; background: #0b1220; color: white; font-size: 1rem; outline: none; }
+    .btn-submit { width: 100%; padding: 14px; border-radius: 8px; border: none; background: #2563eb; color: white; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .btn-submit:hover { background: #1d4ed8; }
+
+    .badge { margin-left: 8px; background: #ef4444; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; vertical-align: middle;}
 </style>
 </head>
 <body>
 <div class="wrap">
-    <!-- 准备阶段 -->
     <div class="card" id="startScreen">
         <h1>🎯 闯关答题器</h1>
         <div class="sub-title">第一章 计算机系统概述</div>
         <div style="color: #9ca3af; text-align: center; font-size: 0.95rem; line-height: 1.6; padding: 10px 0;">
             <p>共 44 道题（20道选择题 + 10道填空题 + 14道判断题）</p>
-            <p>答对自动进入下一题，答错可重新选择，也可以跳过或查看答案。</p>
+            <p>包含错题回顾功能：答错或跳过的题目将在最后重新测试。</p>
         </div>
         <button class="btn-primary" onclick="startGame()">开始闯关</button>
     </div>
 
-    <!-- 答题阶段 -->
     <div class="card game-area" id="gameScreen">
         <div class="header">
             <div class="info" id="progressText">进度：0 / 44</div>
             <div class="info score" id="scoreText">得分：0</div>
         </div>
-        
         <div class="q-content" id="questionText"></div>
-        
         <div class="opts" id="optionsContainer"></div>
-        
         <div class="hint-text" id="hintText"></div>
         <div class="answer-reveal" id="answerReveal"></div>
-
-        <!-- 底部按钮：跳过 / 看答案 -->
         <div class="bottom-btns" id="bottomBtns">
-            <button class="btn-skip" onclick="skipQuestion()">⏭ 跳过这题</button>
-            <button class="btn-reveal" onclick="revealAnswer()">👁 查看答案</button>
+            <button class="btn-skip" onclick="markAndNext()">⏭ 跳过并记错题</button>
+            <button class="btn-reveal" onclick="revealAndNext()">👁 看答案并记错题</button>
         </div>
     </div>
 </div>
 
 <script>
-    // ================= 核心题库数据 =================
-    const rawDB = [
-        // 选择题 (C)
-        ["C", "计算机的两个主要组成部分是（ ）。A.输入和输出 B.存储和程序 C.硬件和软件 D.显示器和打印机"],
-        ["D", "第一代电子计算机的主要标志是（ ）。A.机械式 B.机械电子式 C.中小规模集成电路 D.电子管"],
-        ["A", "第二代电子计算机的主要标志是（ ）。A.晶体管 B.机械电子式 C.中小规模集成电路 D.电子管"],
-        ["C", "第三代电子计算机的主要标志是（ ）。A.电子管 B.晶体管 C.中小规模集成电路 D.大规模和超大规模集成电路"],
-        ["A", "第四代电子计算机的主要标志是（ ）。A.大规模和超大规模集成电路 B.晶体管 C.中小规模集成电路 D.电子管"],
-        ["B", "计算机的特点表现在它的高速、精确的计算、强大的存储和（ ），以及可以自动处理和网络功能。A.体积小 B.逻辑处理能力 C.功耗低 D.价格便宜"],
-        ["C", "第一代至第四代计算机使用的基本元件分别是（ ）。A.晶体管、电子管、中小规模集成电路、大规模和超大规模集成电路 B.晶体管、电子管、大规模集成电路、超大规模集成电路 C.电子管、晶体管、中小规模集成电路、大规模和超大规模集成电路 D.电子管、晶体管、大规模集成电路、超大规模集成电路"],
-        ["C", "计算机的体系结构是指（ ）。A.研究计算机的算法 B.研究计算机的硬件构成 C.研究计算机硬件和软件的构成 D.研究计算机应用领域"],
-        ["C", "计算机存储器容量以（ ）为基本单位。A.字 B.位 C.字节 D.比特"],
-        ["C", "在计算机中，CPU是在一块大规模集成电路上把（ ）和控制器集成在一起。A.寄存器 B.存储器 C.ALU D.指令译码器"],
-        ["C", "接口（Interface）是连接外围设备的电路，位于I/O设备和（ ）之间。A.控制器和运算器 B.存储器和运算器 C.CPU和存储器 D.存储器和控制器"],
-        ["A", "在微机系统中，可以用作输入设备的是（ ）。A.键盘 B.音箱 C.显示器 D.打印机"],
-        ["D", "应用软件指（ ）。A.所有能够使用的软件 B.能够被各应用单位共同使用的软件 C.所有计算机上都能够使用的软件 D.专门为某一应用而编写的软件"],
-        ["C", "计算机软件系统一般包括（ ）。A.系统软件与文字处理软件 B.操作系统和程序设计语言 C.系统软件和应用软件 D.应用软件和管理软件"],
-        ["B", "通常把运算器和（ ）合称为CPU。A.存储器 B.控制器 C.中央处理器 D.I/O设备"],
-        ["B", "常用主机的（ ）反映微机的速度指标。A.存取速度 B.时钟频率 C.内存容量 D.字长"],
-        ["B", "在微机系统中，BIOS（基本输入/输出系统）存放在（ ）中。A.RAM B.ROM C.硬盘 D.寄存器"],
-        ["B", "计算机的CPU每执行（ ），就完成一步基本运算或判断。A.一条语句 B.一条指令 C.一段程序 D.一个软件"],
-        ["D", "下列存储器中，存取速度最快的是（ ）。A.软盘 B.硬盘 C.光盘 D.内存"],
-        ["B", "计算机通常所说的386、486、586、Pentium，这是指该机配置的（ ）而言。A.总线标准的类型 B.CPU的型号 C.CPU的速度 D.内存容量"],
-        // 填空题 (F)
-        ["8", "在计算机中，规定一个字节由 ____ 个二进制位组成。"],
-        ["10", "在计算机中，1K是2的 ____ 次方。"],
-        ["内存储器 外存储器 存储容量 存储周期", "存储系统是计算机的关键子系统之一，存储器的种类一般可以分为 ____ 和 ____。它的常用技术指标为 ____ 和 ____。"],
-        ["数据总线 地址总线 控制总线 总线上传送信息不同", "计算机总线可以分为 ____、____、____ 等类型，它们的划分依据是 ____。"],
-        ["运算器 控制器", "微机的CPU由 ____ 和 ____ 组合而成。"],
-        ["主频", "衡量CPU性能的主要技术参数是 ____、字长和浮点运算能力等。"],
-        ["RAM ROM 易失 读取", "内存分为 ____ 和 ____。RAM存储器具有 ____ 性。只读存储器中存储的数据一般情况下只能 ____，断电后保存在只读存储器内的数据不会消失。"],
-        ["用户 计算机", "输入设备是 ____ 和 ____ 系统之间进行信息交互的装置。"],
-        ["系统软件 应用软件", "计算机软件包括 ____ 和 ____ 两大类。"],
-        ["机器语言 汇编语言 高级语言", "程序设计语言按其级别可以分为 ____、____ 和 ____ 三大类。"],
-        // 判断题 (Y/N)
-        ["N", "第一代计算机的主存储器采用的是磁鼓。"],
-        ["N", "计算机辅助教学的英文缩写是CAT。"],
-        ["Y", "第二代计算机可以采用高级语言进行程序设计。"],
-        ["Y", "第一代计算机只能使用机器语言进行程序设计。"],
-        ["Y", "程序一定要调入内存后才能运行。"],
-        ["N", "SRAM存储器是动态随机存储器。"],
-        ["Y", "程序是能够完成特定功能的一组指令序列。"],
-        ["Y", "磁盘既可以作为输入设备，也可以作为输出设备。"],
-        ["N", "计算机系统功能的强弱完全由CPU决定。"],
-        ["N", "任何型号的计算机系统均采用统一的指令系统。"],
-        ["Y", "系统软件包括操作系统、语言处理程序和各种服务程序等。"],
-        ["Y", "数据库管理系统是系统软件。"],
-        ["Y", "计算机的指令是一组二进制代码，是计算机可以直接执行的操作命令。"],
-        ["N", "通常把运算器、控制器、存储器和输入/输出设备合称为计算机系统。"]
+    // ================= 题库数据 =================
+    const CHOICES = [
+        { answer: "C", question: "计算机的两个主要组成部分是（ ）。", options: ["A.输入和输出", "B.存储和程序", "C.硬件和软件", "D.显示器和打印机"] },
+        { answer: "D", question: "第一代电子计算机的主要标志是（ ）。", options: ["A.机械式", "B.机械电子式", "C.中小规模集成电路", "D.电子管"] },
+        { answer: "A", question: "第二代电子计算机的主要标志是（ ）。", options: ["A.晶体管", "B.机械电子式", "C.中小规模集成电路", "D.电子管"] },
+        { answer: "C", question: "第三代电子计算机的主要标志是（ ）。", options: ["A.电子管", "B.晶体管", "C.中小规模集成电路", "D.大规模和超大规模集成电路"] },
+        { answer: "A", question: "第四代电子计算机的主要标志是（ ）。", options: ["A.大规模和超大规模集成电路", "B.晶体管", "C.中小规模集成电路", "D.电子管"] },
+        { answer: "B", question: "计算机的特点表现在它的高速、精确的计算、强大的存储和（ ），以及可以自动处理和网络功能。", options: ["A.体积小", "B.逻辑处理能力", "C.功耗低", "D.价格便宜"] },
+        { answer: "C", question: "第一代至第四代计算机使用的基本元件分别是（ ）。", options: ["A.晶体管、电子管、中小规模集成电路、大规模和超大规模集成电路", "B.晶体管、电子管、大规模集成电路、超大规模集成电路", "C.电子管、晶体管、中小规模集成电路、大规模和超大规模集成电路", "D.电子管、晶体管、大规模集成电路、超大规模集成电路"] },
+        { answer: "C", question: "计算机的体系结构是指（ ）。", options: ["A.研究计算机的算法", "B.研究计算机的硬件构成", "C.研究计算机硬件和软件的构成", "D.研究计算机应用领域"] },
+        { answer: "C", question: "计算机存储器容量以（ ）为基本单位。", options: ["A.字", "B.位", "C.字节", "D.比特"] },
+        { answer: "C", question: "在计算机中，CPU是在一块大规模集成电路上把（ ）和控制器集成在一起。", options: ["A.寄存器", "B.存储器", "C.ALU", "D.指令译码器"] },
+        { answer: "C", question: "接口（Interface）是连接外围设备的电路，位于I/O设备和（ ）之间。", options: ["A.控制器和运算器", "B.存储器和运算器", "C.CPU和存储器", "D.存储器和控制器"] },
+        { answer: "A", question: "在微机系统中，可以用作输入设备的是（ ）。", options: ["A.键盘", "B.音箱", "C.显示器", "D.打印机"] },
+        { answer: "D", question: "应用软件指（ ）。", options: ["A.所有能够使用的软件", "B.能够被各应用单位共同使用的软件", "C.所有计算机上都能够使用的软件", "D.专门为某一应用而编写的软件"] },
+        { answer: "C", question: "计算机软件系统一般包括（ ）。", options: ["A.系统软件与文字处理软件", "B.操作系统和程序设计语言", "C.系统软件和应用软件", "D.应用软件和管理软件"] },
+        { answer: "B", question: "通常把运算器和（ ）合称为CPU。", options: ["A.存储器", "B.控制器", "C.中央处理器", "D.I/O设备"] },
+        { answer: "B", question: "常用主机的（ ）反映微机的速度指标。", options: ["A.存取速度", "B.时钟频率", "C.内存容量", "D.字长"] },
+        { answer: "B", question: "在微机系统中，BIOS（基本输入/输出系统）存放在（ ）中。", options: ["A.RAM", "B.ROM", "C.硬盘", "D.寄存器"] },
+        { answer: "B", question: "计算机的CPU每执行（ ），就完成一步基本运算或判断。", options: ["A.一条语句", "B.一条指令", "C.一段程序", "D.一个软件"] },
+        { answer: "D", question: "下列存储器中，存取速度最快的是（ ）。", options: ["A.软盘", "B.硬盘", "C.光盘", "D.内存"] },
+        { answer: "B", question: "计算机通常所说的386、486、586、Pentium，这是指该机配置的（ ）而言。", options: ["A.总线标准的类型", "B.CPU的型号", "C.CPU的速度", "D.内存容量"] }
     ];
 
+    const FILLS = [
+        { answer: ["8"], question: "在计算机中，规定一个字节由 ____ 个二进制位组成。" },
+        { answer: ["10"], question: "在计算机中，1K是2的 ____ 次方。" },
+        { answer: ["内存储器", "外存储器", "存储容量", "存储周期"], question: "存储系统是计算机的关键子系统之一，存储器的种类一般可以分为 ____ 和 ____。它的常用技术指标为 ____ 和 ____。" },
+        { answer: ["数据总线", "地址总线", "控制总线", "总线上传送信息不同"], question: "计算机总线可以分为 ____、____、____ 等类型，它们的划分依据是 ____。" },
+        { answer: ["运算器", "控制器"], question: "微机的CPU由 ____ 和 ____ 组合而成。" },
+        { answer: ["主频"], question: "衡量CPU性能的主要技术参数是 ____、字长和浮点运算能力等。" },
+        { answer: ["RAM", "ROM", "易失", "读取"], question: "内存分为 ____ 和 ____。RAM存储器具有 ____ 性。只读存储器中存储的数据一般情况下只能 ____，断电后保存在只读存储器内的数据不会消失。" },
+        { answer: ["用户", "计算机"], question: "输入设备是 ____ 和 ____ 系统之间进行信息交互的装置。" },
+        { answer: ["系统软件", "应用软件"], question: "计算机软件包括 ____ 和 ____ 两大类。" },
+        { answer: ["机器语言", "汇编语言", "高级语言"], question: "程序设计语言按其级别可以分为 ____、____ 和 ____ 三大类。" }
+    ];
+
+    const JUDGES = [
+        { answer: "N", question: "第一代计算机的主存储器采用的是磁鼓。" },
+        { answer: "N", question: "计算机辅助教学的英文缩写是CAT。" },
+        { answer: "Y", question: "第二代计算机可以采用高级语言进行程序设计。" },
+        { answer: "Y", question: "第一代计算机只能使用机器语言进行程序设计。" },
+        { answer: "Y", question: "程序一定要调入内存后才能运行。" },
+        { answer: "N", question: "SRAM存储器是动态随机存储器。" },
+        { answer: "Y", question: "程序是能够完成特定功能的一组指令序列。" },
+        { answer: "Y", question: "磁盘既可以作为输入设备，也可以作为输出设备。" },
+        { answer: "N", question: "计算机系统功能的强弱完全由CPU决定。" },
+        { answer: "N", question: "任何型号的计算机系统均采用统一的指令系统。" },
+        { answer: "Y", question: "系统软件包括操作系统、语言处理程序和各种服务程序等。" },
+        { answer: "Y", question: "数据库管理系统是系统软件。" },
+        { answer: "Y", question: "计算机的指令是一组二进制代码，是计算机可以直接执行的操作命令。" },
+        { answer: "N", question: "通常把运算器、控制器、存储器和输入/输出设备合称为计算机系统。" }
+    ];
+
+    let allQuestions = [];
     let questions = [];
     let currentIndex = 0;
     let score = 0;
+    let wrongList = []; // 错题本
 
-    // 解析题库数据
-    function parseDB(db) {
+    function startGame() {
+        // 初始化题库
         let qList = [];
-        for (let i = 0; i < db.length; i++) {
-            let ans = db[i][0];
-            let text = db[i][1];
-            let type = 'choice';
-            let options = [];
-            
-            if (['Y', 'N'].includes(ans)) {
-                type = 'judge';
-            } else if (ans.split(' ').length > 1) {
-                type = 'fill';
-                ans = ans.split(' ').map(s => s.trim()).filter(s => s);
-            } else {
-                type = 'choice';
-                let parts = text.split(/(?=[A-D]\.)/g);
-                if (parts.length > 1) {
-                    options = parts.slice(1).map(p => ({
-                        key: p.charAt(0),
-                        text: p.substring(1).trim()
-                    }));
-                    text = parts[0].replace(/（\s*）/g, '').trim();
-                }
-            }
-            
-            qList.push({ question: text, answer: ans, type: type, options: options });
-        }
-        return qList;
+        CHOICES.forEach(q => qList.push({...q, type: 'choice'}));
+        FILLS.forEach(q => qList.push({...q, type: 'fill'}));
+        JUDGES.forEach(q => qList.push({...q, type: 'judge'}));
+        
+        allQuestions = qList;
+        resetGame(qList);
     }
 
-    // 开始闯关
-    function startGame() {
-        questions = parseDB(rawDB);
+    function resetGame(qList) {
+        questions = [...qList];
+        // 随机打乱
         questions.sort(() => Math.random() - 0.5);
         
         document.getElementById('startScreen').style.display = 'none';
         document.getElementById('gameScreen').style.display = 'block';
         currentIndex = 0;
-        score = 0;
         showQuestion();
     }
 
-    // 显示当前题目
     function showQuestion() {
         const q = questions[currentIndex];
-        document.getElementById('progressText').innerText = `进度：${currentIndex + 1} / ${questions.length}`;
+        let progressInfo = `进度：${currentIndex + 1} / ${questions.length}`;
+        
+        // 如果是错题模式，添加徽章提示
+        if(wrongList.length > 0 && questions.length === wrongList.length) {
+            progressInfo = `<span class="badge">错题模式</span> ${progressInfo}`;
+        }
+
+        document.getElementById('progressText').innerHTML = progressInfo;
         document.getElementById('scoreText').innerText = `得分：${score}`;
         document.getElementById('questionText').innerText = q.question;
         document.getElementById('hintText').style.display = 'none';
@@ -200,51 +179,44 @@
         if(q.type === 'judge') {
             container.classList.add('judge-btns');
             container.innerHTML = `
-                <div class="opt-btn" onclick="checkAnswer(this, 'Y')">✅ 正确 (Y)</div>
-                <div class="opt-btn" onclick="checkAnswer(this, 'N')">❌ 错误 (N)</div>
+                <div class="opt-btn" onclick="checkAnswer(this, 'Y')">✅ 正确</div>
+                <div class="opt-btn" onclick="checkAnswer(this, 'N')">❌ 错误</div>
             `;
         } else if (q.type === 'fill') {
-            let inputHTML = `<div style="width: 100%;"><input id="fillInput" type="text" placeholder="请输入你的答案..." 
-            style="width: 100%; padding: 15px; border-radius: 8px; border: 1px solid #334155; background: #0b1220; color: white; font-size: 1rem; outline: none;">
-            <button onclick="checkFill()" style="width: 100%; margin-top: 12px; padding: 14px; border-radius: 8px; border: none; background: #2563eb; color: white; font-size: 1rem; font-weight: bold; cursor: pointer;">提交答案</button></div>`;
-            container.innerHTML = inputHTML;
+            container.innerHTML = `
+                <div class="fill-input-wrap">
+                    <input id="fillInput" type="text" placeholder="请输入你的答案（多个答案用空格或顿号隔开）">
+                    <button class="btn-submit" onclick="checkFill()">提交答案</button>
+                </div>
+            `;
         } else {
             q.options.forEach((opt) => {
                 const div = document.createElement('div');
                 div.className = 'opt-btn';
-                div.innerText = `${opt.key}. ${opt.text}`;
-                div.onclick = function() { checkAnswer(this, opt.key); };
+                div.innerText = opt;
+                div.onclick = function() { checkAnswer(this, opt.charAt(0)); };
                 container.appendChild(div);
             });
         }
     }
 
-    // 校验客观题答案（选择/判断）
     function checkAnswer(btn, userAnswer) {
         const q = questions[currentIndex];
-        let isCorrect = false;
-        
-        if (q.type === 'choice' || q.type === 'judge') {
-            isCorrect = (q.answer.toUpperCase() === userAnswer.toUpperCase());
-        }
-
-        if (isCorrect) {
+        if (userAnswer === q.answer) {
             btn.classList.add('correct');
             score += 5;
             document.getElementById('scoreText').innerText = `得分：${score}`;
             document.getElementById('bottomBtns').style.display = 'none';
-            setTimeout(() => { nextQuestion(); }, 800);
+            setTimeout(() => { nextQuestion(); }, 600);
         } else {
             btn.classList.add('wrong');
-            const hint = document.getElementById('hintText');
-            hint.innerText = "❌ 答案错误，可以重新选择，或者点下方「跳过」";
-            hint.style.display = 'block';
+            document.getElementById('bottomBtns').style.display = 'none';
+            revealAnswer(); // 答错直接显示答案，并自动记入错题
         }
     }
 
-    // 校验填空题答案
     function checkFill() {
-        const val = document.getElementById('fillInput').value.trim();
+        const val = document.getElementById('fillInput').value.trim().replace(/[、，,;]/g, ' ');
         const q = questions[currentIndex];
         
         let isCorrect = q.answer.every(keyword => {
@@ -257,26 +229,34 @@
             score += 5;
             document.getElementById('scoreText').innerText = `得分：${score}`;
             document.getElementById('bottomBtns').style.display = 'none';
-            setTimeout(() => { nextQuestion(); }, 800);
+            setTimeout(() => { nextQuestion(); }, 600);
         } else {
             document.getElementById('fillInput').style.borderColor = '#ef4444';
             document.getElementById('fillInput').style.background = '#7f1d1d';
-            const hint = document.getElementById('hintText');
-            hint.innerText = "❌ 答案不匹配，可以重新输入，或者点下方「跳过」";
-            hint.style.display = 'block';
+            document.getElementById('bottomBtns').style.display = 'none';
+            revealAnswer(); // 答错直接显示答案，并自动记入错题
         }
     }
 
-    // 跳过这题
-    function skipQuestion() {
+    // 标记为错题并进入下一题
+    function markAndNext() {
+        addToWrongList(questions[currentIndex]);
         nextQuestion();
     }
 
-    // 查看答案
+    // 显示答案，并记入错题
+    function revealAndNext() {
+        revealAnswer();
+        addToWrongList(questions[currentIndex]);
+        document.getElementById('bottomBtns').style.display = 'none';
+        // 延迟后自动跳过
+        setTimeout(() => { nextQuestion(); }, 2000);
+    }
+
     function revealAnswer() {
         const q = questions[currentIndex];
+        addToWrongList(q); // 只要看了答案就算错题
         const reveal = document.getElementById('answerReveal');
-        
         if (q.type === 'fill') {
             reveal.innerText = "💡 参考答案：" + q.answer.join("、");
         } else if (q.type === 'judge') {
@@ -285,22 +265,50 @@
             reveal.innerText = "💡 正确答案：" + q.answer;
         }
         reveal.style.display = 'block';
-        document.getElementById('hintText').style.display = 'none';
     }
 
-    // 跳转下一题
+    // 加入错题本（去重）
+    function addToWrongList(q) {
+        let isExist = wrongList.some(w => w.question === q.question);
+        if (!isExist) {
+            wrongList.push(q);
+        }
+    }
+
     function nextQuestion() {
         currentIndex++;
         if(currentIndex >= questions.length) {
-            document.getElementById('gameScreen').innerHTML = `
-                <div style="text-align: center; padding: 40px 0;">
-                    <h2 style="color: #10b981; font-size: 1.8rem; margin-bottom: 20px;">🎉 答题完成！</h2>
-                    <p style="font-size: 1.2rem; color: #e6edf3;">最终得分：<span style="color: #fbbf24; font-weight: bold; font-size: 2rem;">${score}</span> / ${questions.length * 5}</p>
-                    <button onclick="location.reload()" style="margin-top: 30px; padding: 12px 30px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer;">重新挑战</button>
-                </div>`;
+            // 本轮结束
+            if (wrongList.length > 0) {
+                // 还有错题，进入错题模式
+                document.getElementById('gameScreen').innerHTML = `
+                    <div style="text-align: center; padding: 40px 0;">
+                        <h2 style="color: #fbbf24; font-size: 1.5rem; margin-bottom: 20px;">📝 还有 ${wrongList.length} 道错题未掌握</h2>
+                        <p style="font-size: 1rem; color: #9ca3af; margin-bottom: 30px;">现在进入错题回顾模式，必须全部答对才算通关！</p>
+                        <button class="btn-primary" onclick="startReview()">开始错题重做</button>
+                    </div>`;
+            } else {
+                // 完美通关
+                document.getElementById('gameScreen').innerHTML = `
+                    <div style="text-align: center; padding: 40px 0;">
+                        <h2 style="color: #10b981; font-size: 1.8rem; margin-bottom: 20px;">🎉 恭喜完美通关！</h2>
+                        <p style="font-size: 1.2rem; color: #e6edf3;">最终得分：<span style="color: #fbbf24; font-weight: bold; font-size: 2rem;">${score}</span></p>
+                        <p style="color: #9ca3af; margin-top: 10px;">太棒了，所有题目一次答对！</p>
+                        <button class="btn-primary" onclick="location.reload()">再来一局</button>
+                    </div>`;
+            }
         } else {
             showQuestion();
         }
+    }
+
+    function startReview() {
+        // 重置错题本，因为重做如果又错了，需要重新记录
+        let currentWrongList = [...wrongList];
+        wrongList = []; 
+        
+        // 用错题重新开局
+        resetGame(currentWrongList);
     }
 </script>
 </body>
