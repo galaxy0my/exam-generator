@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>智能出题器</title>
+<title>智能出题器 (完美版)</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#0b1220;color:#e6edf3;font-family:-apple-system,"PingFang SC",sans-serif}
@@ -11,7 +11,7 @@ body{margin:0;background:#0b1220;color:#e6edf3;font-family:-apple-system,"PingFa
 h1{font-size:1.3rem;margin-bottom:12px}
 .card{background:#111827;border:1px solid #1f2a3a;border-radius:12px;padding:18px;margin-bottom:16px}
 label{display:block;margin:8px 0 4px;font-size:.9rem;color:#9ca3af}
-textarea{width:100%;min-height:300px;padding:10px;border-radius:8px;border:1px solid #2a3548;background:#0b1220;color:#e6edf3;font-size:.85rem;font-family:monospace;resize:vertical}
+textarea{width:100%;min-height:400px;padding:10px;border-radius:8px;border:1px solid #2a3548;background:#0b1220;color:#e6edf3;font-size:.85rem;font-family:monospace;resize:vertical}
 .hint{font-size:.78rem;color:#6b7280;margin-top:4px}
 .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 .row>div{flex:1;min-width:120px}
@@ -37,18 +37,19 @@ button{padding:10px 18px;border-radius:8px;border:none;cursor:pointer;font-weigh
 </head>
 <body>
 <div class="wrap">
-<h1>智能出题器</h1>
+<h1>智能出题器 (完美版)</h1>
 <div class="card">
 <label>粘贴题库</label>
 <textarea id="rawInput" placeholder="直接粘贴整个题库文本，支持以下格式：
 
-一、选择题
-1. 计算机的两个主要组成部分是（ ）。
-A. 输入和输出
-B. 存储和程序
-C. 硬件和软件
-D. 显示器和打印机
-答案：C
+一、选择题 (支持答案在括号内或末尾)
+1. 计算机的两个主要组成部分是（ C ）。
+A. 输入和输出 B. 存储和程序
+C. 硬件和软件 D. 显示器和打印机
+
+2. 第一代电子计算机的主要标志是（ ）。
+A. 机械式 B. 电子管 C. 集成电路 D. 晶体管
+答案：B
 
 二、判断题
 3. 计算机包含硬件和软件。（）
@@ -61,7 +62,7 @@ D. 显示器和打印机
 四、简答题
 7. 计算机硬件由哪些部分组成？
 答案：运算器、控制器、存储器、输入设备、输出设备"></textarea>
-<div class="hint">把整个题库一次性粘贴进来，系统自动识别选择题、判断题、填空题、简答题。</div>
+<div class="hint">直接粘贴整段题库，系统自动识别选择题（带括号或答案）、判断题、填空题、简答题。</div>
 <div class="row">
 <div><label>抽取题量</label><input type="number" id="countInput" value="10" min="1"></div>
 </div>
@@ -72,83 +73,87 @@ D. 显示器和打印机
 </div>
 
 <script>
-let paper=[];
+let paper = [];
 
-function parseAll(text){
-    // 第一步：把整个文本按题号拆成独立的题
-    // 匹配格式：数字+点+内容，如 "1. " 或 "1、"
-    const parts = text.split(/(?=\d+[\.、]\s)/);
-    let questions = [];
-    
-    parts.forEach(part => {
-        part = part.trim();
-        if(!part) return;
-        
-        // 提取题号
-        const numMatch = part.match(/^(\d+)[\.、]\s*/);
-        if(!numMatch) return;
-        
-        let q = {};
-        let body = part.replace(/^\d+[\.、]\s*/, '').trim();
-        
-        // 查找"答案："位置
-        const ansIdx = body.search(/答案[：:]/);
-        if(ansIdx === -1) return; // 没有答案的题目跳过
-        
-        const answer = body.substring(ansIdx).replace(/^答案[：:]\s*/, '').trim();
-        body = body.substring(0, ansIdx).trim();
-        
-        // 按行拆分
-        const lines = body.split('\n').map(l => l.trim()).filter(l => l);
-        
-        // 判断题型
-        // 如果 body 中有多行，且包含 A. B. C. D. 这样的选项行 → 选择题
-        const hasOptions = lines.some(l => /^[A-D][\.\、]\s/.test(l));
-        
-        if(hasOptions){
-            // 选择题：第一行是题干，后面是选项
-            q.type = 'choice';
-            q.question = lines[0];
-            q.options = [];
-            lines.slice(1).forEach(l => {
-                const m = l.match(/^([A-D])[\.\、]\s*(.+)$/);
-                if(m) q.options.push({key: m[1], text: m[2]});
-            });
-        } else if(answer === 'Y' || answer === 'N'){
-            // 判断题
-            q.type = 'judge';
-            q.question = body;
+// 清洗并识别单道题目的逻辑
+function processQuestionBlock(block) {
+    let lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    if (lines.length < 2) return null;
+
+    let type = 'choice';
+    let question = '';
+    let options = [];
+    let answer = '';
+
+    // 1. 提取最后一行的“答案：...” (处理标准格式)
+    if (/^答案[：:]/.test(lines[lines.length - 1])) {
+        answer = lines.pop().replace(/^答案[：:]\s*/, '').trim().toUpperCase();
+    }
+
+    // 2. 第一行通常是题干
+    question = lines.shift();
+
+    // 3. 尝试从题干中提取答案（处理答案在括号内的格式，如：1. 题目（ C ））
+    let inBrace = question.match(/（\s*([A-N]?)\s*）/);
+    if (inBrace && inBrace[1]) {
+        answer = inBrace[1].toUpperCase();
+        // 清除括号内的答案字母，只保留空括号作为待选项
+        question = question.replace(/（\s*[A-N]\s*）/, '（  ）');
+    }
+
+    // 4. 分析剩余的行：判断是选项、填空还是简答
+    let optLines = [];
+    lines.forEach(l => {
+        // 如果这一行包含 "X. " 或 "X、" (如 A. B. C.)，视为选项
+        if (/^[A-D][\.、]\s/.test(l)) {
+            optLines.push(l);
         } else {
-            // 填空或简答：看题干是否有 __
-            if(body.includes('__')){
-                q.type = 'fill';
-                q.question = body;
-            } else {
-                q.type = 'essay';
-                q.question = body;
-            }
+            // 如果不是选项，可能是换行的题干或简答题的长答案
+            question += ' ' + l;
         }
-        
-        q.answer = answer;
-        q.score = 5;
-        questions.push(q);
     });
-    
-    return questions;
+
+    // 最终确定题型
+    if (['Y', 'N', '正确', '错误'].includes(answer)) {
+        type = 'judge';
+    } else if (answer.length > 0 && optLines.length > 0) {
+        type = 'choice';
+        options = optLines;
+    } else if (answer.length > 0 && !optLines.length) {
+        // 有答案，但没有 A. B. C. D. 选项
+        if (question.includes('__')) {
+            type = 'fill';
+        } else {
+            type = 'essay';
+        }
+    }
+
+    // 如果最终没能提取到答案，说明格式不对，放弃这道题
+    if (!answer && type !== 'essay') return null;
+
+    return { type, question, options, answer, score: 5 };
 }
 
-function generate(){
+function generate() {
     const text = document.getElementById('rawInput').value;
-    const questions = parseAll(text);
-    if(!questions.length) return alert('没有识别到题目，请检查格式！');
+    // 按题号拆分题库 (如：1. 2. 3.)
+    const blocks = text.split(/(?=\d+[\.、]\s)/);
     
+    let questions = [];
+    blocks.forEach(block => {
+        let q = processQuestionBlock(block);
+        if (q) questions.push(q);
+    });
+
+    if (!questions.length) return alert('没有识别到题目，请检查格式！');
+
     const count = parseInt(document.getElementById('countInput').value) || 10;
     questions.sort(() => Math.random() - 0.5);
     paper = questions.slice(0, count);
     render();
 }
 
-function render(){
+function render() {
     let html = '<div style="margin-bottom:10px"><button class="ghost" onclick="submit()">提交评分</button></div>';
     
     paper.forEach((q, i) => {
@@ -157,20 +162,20 @@ function render(){
             <div class="q-type">${typeLabel}（${q.score}分）</div>
             <div style="margin-bottom:8px">${i+1}. ${q.question}</div>`;
         
-        if(q.type === 'choice'){
+        if (q.type === 'choice') {
             html += '<div class="opts">';
             q.options.forEach(opt => {
-                html += `<label><input type="radio" name="q${i}" value="${opt.key}"> ${opt.key}. ${opt.text}</label>`;
+                html += `<label><input type="radio" name="q${i}" value="${opt.charAt(0)}"> ${opt}</label>`;
             });
             html += '</div>';
-        } else if(q.type === 'judge'){
+        } else if (q.type === 'judge') {
             html += '<div class="opts">';
             html += `<label><input type="radio" name="q${i}" value="Y"> Y (正确)</label>`;
             html += `<label><input type="radio" name="q${i}" value="N"> N (错误)</label>`;
             html += '</div>';
-        } else if(q.type === 'fill'){
+        } else if (q.type === 'fill') {
             html += `<input class="fill-input" id="input_q${i}" placeholder="在此输入答案">`;
-        } else if(q.type === 'essay'){
+        } else if (q.type === 'essay') {
             html += `<textarea class="essay-area" id="input_q${i}" placeholder="在此输入答案"></textarea>`;
         }
         
@@ -181,28 +186,28 @@ function render(){
     document.getElementById('paperArea').scrollIntoView({behavior:'smooth'});
 }
 
-function submit(){
-    let total=0, got=0;
-    paper.forEach((q,i) => {
+function submit() {
+    let total = 0, got = 0;
+    paper.forEach((q, i) => {
         total += q.score;
         let val = '';
         
-        if(q.type === 'choice' || q.type === 'judge'){
+        if (q.type === 'choice' || q.type === 'judge') {
             val = document.querySelector(`input[name="q${i}"]:checked`)?.value || '';
         } else {
             val = document.getElementById(`input_q${i}`)?.value?.trim() || '';
         }
         
         let ok = false;
-        if(q.type === 'essay'){
-            // 简答题：关键词匹配
+        if (q.type === 'essay') {
+            // 简答题：只要包含了答案中的关键词就算对
             const keywords = q.answer.split(/[,，、]/).map(k => k.trim()).filter(k => k.length > 0);
             ok = keywords.some(k => val.includes(k));
         } else {
             ok = val.toUpperCase() === q.answer.toUpperCase();
         }
         
-        if(ok) got += q.score;
+        if (ok) got += q.score;
         
         const el = document.getElementById(`ans${i}`);
         el.classList.add('show');
@@ -211,20 +216,20 @@ function submit(){
             : `<span class="wrong">✗ 错误</span> 答案：${q.answer}`;
     });
     
-    const pct = total ? Math.round(got/total*100) : 0;
+    const pct = total ? Math.round(got / total * 100) : 0;
     const bar = `<div class="score-bar">
         <div class="score-box"><div class="score-num">${got}</div>得分</div>
         <div class="score-box"><div class="score-num">${total}</div>总分</div>
         <div class="score-box"><div class="score-num">${pct}%</div>正确率</div>
     </div>`;
     
-    if(!document.querySelector('.score-bar')){
+    if (!document.querySelector('.score-bar')) {
         document.querySelector('.wrap').insertAdjacentHTML('afterbegin', bar);
     }
     window.scrollTo({top:0, behavior:'smooth'});
 }
 
-function resetAll(){
+function resetAll() {
     document.getElementById('rawInput').value = '';
     document.getElementById('paperArea').innerHTML = '';
     paper = [];
