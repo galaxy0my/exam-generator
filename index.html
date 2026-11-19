@@ -1,330 +1,195 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI 智能出题器</title>
-<style>
-  *{box-sizing:border-box}
-  body{margin:0;background:#0b1220;color:#e6edf3;font-family:-apple-system,"PingFang SC","Noto Sans SC",sans-serif}
-  .wrap{max-width:820px;margin:0 auto;padding:20px}
-  h1{font-size:1.3rem;margin-bottom:12px}
-  .card{background:#111827;border:1px solid #1f2a3a;border-radius:12px;padding:18px;margin-bottom:16px}
-  label{display:block;margin:8px 0 4px;font-size:.9rem;color:#9ca3af}
-  select,input[type="text"],textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #2a3548;background:#0b1220;color:#e6edf3;font-size:.95rem}
-  textarea{min-height:120px;resize:vertical}
-  .row{display:flex;gap:10px;flex-wrap:wrap}
-  .row>div{flex:1;min-width:140px}
-  button{padding:10px 16px;border-radius:8px;border:none;cursor:pointer;font-weight:600}
-  .primary{background:#2563eb;color:#fff}
-  .primary:hover{background:#1d4ed8}
-  .ghost{background:#1f2937;color:#e5e7eb;border:1px solid #374151}
-  .ghost:hover{background:#374151}
-  .hint{font-size:.82rem;color:#9ca3af;margin-top:4px}
-  .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.75rem;background:#1e293b;color:#93c5fd;margin-right:6px}
-  .paper{background:#0f172a;border:1px solid #1f2a3a;border-radius:12px;padding:18px}
-  .paper-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-  .section-title{font-size:1rem;color:#60a5fa;margin:18px 0 8px;border-bottom:1px solid #1f2a3a;padding-bottom:6px}
-  .q{background:#111827;border:1px solid #1f2a3a;border-radius:10px;padding:14px;margin-bottom:12px}
-  .q-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:8px}
-  .q-score{color:#fbbf24;font-size:.85rem}
-  .opts label{display:block;padding:8px;border-radius:8px;border:1px solid transparent;cursor:pointer}
-  .opts label:hover{background:#1f2937}
-  .opts input{margin-right:8px}
-  .ans{margin-top:8px;padding:10px;background:#0b1220;border-radius:8px;font-size:.9rem;display:none}
-  .ans.show{display:block}
-  .right{color:#34d399}
-  .wrong{color:#f87171}
-  .bar{position:sticky;top:0;background:#0b1220;padding:12px 0;display:flex;gap:10px;flex-wrap:wrap;border-bottom:1px solid #1f2a3a;margin-bottom:12px;z-index:10}
-  .score-box{text-align:center;padding:10px;border-radius:10px;background:#111827;border:1px solid #1f2a3a;flex:1;min-width:100px}
-  .score-num{font-size:1.4rem;color:#fbbf24}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>本地智能出题器</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #0b1220; color: #e6edf3; font-family: -apple-system, "PingFang SC", "Noto Sans SC", sans-serif; }
+        .wrap { max-width: 820px; margin: 0 auto; padding: 20px; }
+        h1 { font-size: 1.3rem; margin-bottom: 12px; }
+        .card { background: #111827; border: 1px solid #1f2a3a; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+        label { display: block; margin: 8px 0 4px; font-size: .9rem; color: #9ca3af; }
+        select, input, textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #2a3548; background: #0b1220; color: #e6edf3; font-size: .95rem; }
+        textarea { min-height: 100px; resize: vertical; font-family: monospace; }
+        .row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+        .row > div { flex: 1; min-width: 140px; }
+        button { padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; margin-right: 10px; }
+        .primary { background: #2563eb; color: #fff; }
+        .primary:hover { background: #1d4ed8; }
+        .ghost { background: #1f2937; color: #e5e7eb; border: 1px solid #374151; }
+        .ghost:hover { background: #374151; }
+        .hint { font-size: .82rem; color: #9ca3af; margin-top: 4px; }
+        .paper { background: #0f172a; border: 1px solid #1f2a3a; border-radius: 12px; padding: 18px; }
+        .paper-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+        .tag { display: inline-block; padding: 4px 12px; border-radius: 99px; font-size: .75rem; background: #1e293b; color: #93c5fd; margin-right: 6px; }
+        .q-item { background: #111827; border: 1px solid #1f2a3a; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+        .q-head { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: .9rem; }
+        .q-score { color: #fbbf24; }
+        .opts label { display: block; padding: 8px 12px; border-radius: 8px; margin: 4px 0; cursor: pointer; border: 1px solid transparent; }
+        .opts label:hover { background: #1f2937; }
+        .opts input { margin-right: 10px; }
+        .ans-area { margin-top: 10px; padding: 10px; background: #0b1220; border-radius: 8px; display: none; font-size: .9rem; }
+        .ans-area.show { display: block; }
+        .right { color: #34d399; font-weight: bold; }
+        .wrong { color: #f87171; font-weight: bold; }
+        .score-bar { position: sticky; top: 0; background: #0b1220; padding: 15px 0; display: flex; gap: 10px; border-bottom: 1px solid #1f2a3a; margin-bottom: 15px; z-index: 10; }
+        .score-box { text-align: center; padding: 10px; border-radius: 10px; background: #111827; border: 1px solid #1f2a3a; flex: 1; }
+        .score-num { font-size: 1.4rem; color: #fbbf24; font-weight: bold; }
+    </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>AI 智能出题器</h1>
+    <h1>本地智能出题器 (无AI)</h1>
+    
+    <div class="card">
+        <label>1. 录入题库 (JSON格式)</label>
+        <textarea id="db">
+[
+  {"subject": "数学", "question": "1 + 1 = ?", "options": ["1", "2", "3", "4"], "answer": "2", "score": 5},
+  {"subject": "计算机", "question": "1MB = ? KB", "options": ["100", "1024", "1000", "2048"], "answer": "1024", "score": 5},
+  {"subject": "语文", "question": "“床前明月光”的作者是谁？", "options": ["杜甫", "李白", "白居易", "苏轼"], "answer": "李白", "score": 5},
+  {"subject": "英语", "question": "Which is the correct spelling?", "options": ["Appl", "Apple", "Apel", "Aple"], "answer": "Apple", "score": 5},
+  {"subject": "历史", "question": "秦始皇统一六国是在哪一年？", "options": ["公元前221年", "公元前121年", "公元221年", "公元206年"], "answer": "公元前221年", "score": 5}
+]
+        </textarea>
+        <div class="hint">在这里粘贴你的题目数据，格式：[{"subject": "科目", "question": "题目", "options": ["A","B","C","D"], "answer": "正确答案", "score": 分值}]</div>
 
-  <div class="card">
-    <div class="row">
-      <div>
-        <label>学科</label>
-        <select id="subjectPreset" onchange="toggleCustom()">
-          <option value="">请选择学科</option>
-          <option value="数学">数学</option>
-          <option value="英语">英语</option>
-          <option value="语文">语文</option>
-          <option value="计算机">计算机</option>
-          <option value="历史">历史</option>
-          <option value="道法">道法</option>
-          <option value="马原">马克思主义基本原理</option>
-          <option value="法律">法律</option>
-          <option value="政治">政治</option>
-          <option value="物理">物理</option>
-          <option value="化学">化学</option>
-          <option value="生物">生物</option>
-          <option value="学生手册">学生手册</option>
-          <option value="__custom__">其他（手动输入）</option>
-        </select>
-        <input type="text" id="subjectCustom" placeholder="输入学科名称，如：宏观经济学" style="display:none;margin-top:6px">
-      </div>
-      <div>
-        <label>难度</label>
-        <select id="level">
-          <option value="简单">简单</option>
-          <option value="中等" selected>中等</option>
-          <option value="困难">困难</option>
-        </select>
-      </div>
-      <div>
-        <label>题量</label>
-        <select id="count">
-          <option value="10">10 题</option>
-          <option value="20" selected>20 题</option>
-          <option value="30">30 题</option>
-          <option value="50">50 题</option>
-        </select>
-      </div>
+        <div class="row" style="margin-top:12px">
+            <div>
+                <label>2. 选择学科</label>
+                <select id="subjectSelect"><option value="全部">全部学科</option></select>
+            </div>
+            <div>
+                <label>3. 抽取题量</label>
+                <input type="number" id="countInput" value="3" min="1">
+            </div>
+        </div>
+
+        <button class="primary" onclick="generatePaper()">生成试卷</button>
+        <button class="ghost" onclick="resetView()">清空</button>
     </div>
 
-    <label>资料内容（可选）</label>
-    <textarea id="source" placeholder="粘贴教材、课件、笔记、学生手册、法律条文等内容。留空则按学科常识出题。"></textarea>
-    <div class="hint">有资料会更准；没有资料也能生成，但可能不够贴合你的课本。</div>
-
-    <div class="row" style="margin-top:10px">
-      <div>
-        <label>智谱 AI API Key (免费)</label>
-        <input type="text" id="key" placeholder="粘贴从智谱控制台获取的 Key">
-        <div class="hint">Key 只存在浏览器里，不会上传到任何服务器。</div>
-      </div>
-    </div>
-
-    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
-      <button class="primary" onclick="gen()">生成试卷</button>
-      <button class="ghost" onclick="reset()">清空</button>
-      <button class="ghost" onclick="exportPaper()">导出试卷</button>
-    </div>
-  </div>
-
-  <div id="paper"></div>
+    <div id="paperArea"></div>
 </div>
 
 <script>
-function toggleCustom() {
-  const sel = document.getElementById("subjectPreset");
-  const custom = document.getElementById("subjectCustom");
-  custom.style.display = sel.value === "__custom__" ? "block" : "none";
+// 初始化下拉菜单
+const dbBox = document.getElementById("db");
+const subSelect = document.getElementById("subjectSelect");
+
+function updateSubjects() {
+    let subjects = new Set();
+    try {
+        const data = JSON.parse(dbBox.value);
+        data.forEach(q => subjects.add(q.subject));
+    } catch(e){}
+    subSelect.innerHTML = '<option value="全部">全部学科</option>';
+    subjects.forEach(s => {
+        if(s) subSelect.innerHTML += `<option value="${s}">${s}</option>`;
+    });
+}
+dbBox.addEventListener("input", updateSubjects);
+updateSubjects();
+
+let currentPaper = [];
+
+function generatePaper() {
+    let data = [];
+    try {
+        data = JSON.parse(dbBox.value);
+    } catch (e) {
+        return alert("题库 JSON 格式有误，请检查！");
+    }
+
+    const targetSub = document.getElementById("subjectSelect").value;
+    let count = parseInt(document.getElementById("countInput").value) || 5;
+
+    // 筛选学科
+    let pool = targetSub === "全部" ? data : data.filter(q => q.subject === targetSub);
+    
+    if(pool.length === 0) return alert("该学科下没有题目！");
+
+    // 随机抽取
+    pool.sort(() => Math.random() - 0.5);
+    currentPaper = pool.slice(0, count);
+
+    renderPaper(currentPaper, targetSub);
 }
 
-function getSubject() {
-  const sel = document.getElementById("subjectPreset").value;
-  if (sel === "__custom__") return document.getElementById("subjectCustom").value.trim();
-  return sel;
-}
+function renderPaper(questions, subjectLabel) {
+    const area = document.getElementById("paperArea");
+    let html = `<div class="paper">
+        <div class="paper-head">
+            <div>
+                <span class="tag">${subjectLabel}</span>
+                <span class="tag">${questions.length} 题</span>
+            </div>
+            <button class="ghost" onclick="submitPaper()">提交并评分</button>
+        </div>`;
 
-function buildPrompt() {
-  const subject = getSubject();
-  if (!subject) { alert("请选择或输入学科"); return null; }
+    questions.forEach((q, i) => {
+        html += `<div class="q-item">
+            <div class="q-head">
+                <b>第 ${i+1} 题</b>
+                <span class="q-score">${q.score || 5}分</span>
+            </div>
+            <div style="margin-bottom:8px">${q.question}</div>
+            <div class="opts">`;
+        
+        if(Array.isArray(q.options)) {
+            q.options.forEach((opt, idx) => {
+                html += `<label><input type="radio" name="q${i}" value="${opt}"> ${opt}</label>`;
+            });
+        } else {
+            html += `<input type="text" placeholder="输入答案" name="q${i}" value="">`;
+        }
 
-  const level = document.getElementById("level").value;
-  const count = parseInt(document.getElementById("count").value);
-  const source = document.getElementById("source").value.trim();
-
-  let p = `你是一名出题老师。请生成一份「${subject}」试卷，难度${level}，共${count}题。\n\n`;
-  p += `请根据该学科的常见考试形式，自动选择合适的题型组合，例如选择题、填空题、判断题、简答题、计算题、应用题、名词解释、翻译题、作文题、案例分析题等。\n\n`;
-
-  if (source) {
-    p += `资料内容：\n${source}\n\n`;
-    p += `出题要求：\n`;
-    p += `1. 只能根据资料内容出题，不要编造资料里没有的信息。\n`;
-    p += `2. 每道题必须给出：题型、题干、选项（如有）、正确答案、解析。\n`;
-    p += `3. 数学/物理/化学类题目必须写清解题步骤。\n`;
-    p += `4. 英语题可以包含翻译、语法、阅读、词汇等题型。\n`;
-    p += `5. 法律/马原/道法类题目可以包含概念辨析、案例分析、简答。\n`;
-    p += `6. 历史类题目注意时间、事件、人物的准确性。\n`;
-    p += `7. 学生手册类题目必须对应具体条款或规定。\n`;
-  } else {
-    p += `如果没有资料，就按「${subject}」学科常识出题，题目必须合理、准确。\n`;
-  }
-
-  p += `\n输出格式必须是合法 JSON 数组，每个题目对象包含：\n`;
-  p += `type: 题型英文标识，如 "choice" | "fill" | "judge" | "short" | "calc" | "app" | "translate" | "essay" | "case" | "term"\n`;
-  p += `section: 题型中文名称，如"选择题"、"翻译题"、"案例分析"\n`;
-  p += `score: 分值（数字）\n`;
-  p += `question: 题干\n`;
-  p += `options: 选项数组，非选择题可留空数组 []\n`;
-  p += `answer: 正确答案\n`;
-  p += `explain: 解析\n\n`;
-  p += `只输出 JSON 数组，不要输出其他文字。`;
-  return p;
-}
-
-async function gen() {
-  const key = document.getElementById("key").value.trim();
-  if (!key) return alert("请先填写智谱 AI 的 API Key。");
-
-  const prompt = buildPrompt();
-  if (!prompt) return;
-
-  const subject = getSubject();
-  const btn = document.querySelector(".primary");
-  btn.disabled = true;
-  btn.textContent = "生成中…";
-
-  try {
-    const res = await fetch("https://open.bigmodel.cn/api/paas/v4/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // 适配智谱最新的 Authorization 格式
-        "Authorization": "Bearer " + key
-      },
-      body: JSON.stringify({
-        // 使用智谱的免费多模态模型
-        model: "glm-4-flash",
-        messages: [
-          { role: "system", content: "你只输出合法 JSON 数组，不输出多余文字。" },
-          { role: "user", content: prompt }
-        ]
-      })
+        html += `</div>
+            <div class="ans-area" id="ans${i}">
+                <div>正确答案：<b>${q.answer}</b></div>
+            </div>
+        </div>`;
     });
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message || "请求失败，请检查Key或余额");
-
-    let raw = data.choices[0].message.content.trim();
-    raw = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "");
-
-    let list;
-    try {
-      list = JSON.parse(raw);
-    } catch {
-      return alert("AI 返回格式异常，请重新生成。");
-    }
-
-    if (!Array.isArray(list) || list.length === 0) {
-      return alert("没有生成题目，请调整资料或题量后重试。");
-    }
-
-    window._paper = list;
-    render(list, subject);
-  } catch (e) {
-    alert(e.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "生成试卷";
-  }
-}
-
-function render(list, subject) {
-  const box = document.getElementById("paper");
-  let html = `<div class="paper">`;
-  html += `<div class="paper-head">`;
-  html += `<div><span class="tag">${subject}</span><span class="tag">${document.getElementById("level").value}</span><span class="tag">${list.length} 题</span></div>`;
-  html += `<button class="ghost" onclick="submitPaper()">提交并评分</button>`;
-  html += `</div>`;
-
-  let curSection = "";
-  list.forEach((q, i) => {
-    const section = q.section || "题目";
-    if (section !== curSection) {
-      curSection = section;
-      html += `<div class="section-title">${section}</div>`;
-    }
-    html += `<div class="q" data-idx="${i}">`;
-    html += `<div class="q-head"><div><b>第 ${i + 1} 题</b></div><div class="q-score">${q.score ?? 0} 分</div></div>`;
-    html += `<div>${q.question}</div>`;
-
-    const t = (q.type || "").toLowerCase();
-    if (t === "choice" && Array.isArray(q.options) && q.options.length > 0) {
-      html += `<div class="opts">`;
-      q.options.forEach((o, oi) => {
-        const val = String.fromCharCode(65 + oi);
-        html += `<label><input type="radio" name="q${i}" value="${val}"> ${val}. ${o}</label>`;
-      });
-      html += `</div>`;
-    } else if (t === "judge") {
-      html += `<div class="opts">`;
-      html += `<label><input type="radio" name="q${i}" value="正确"> 正确</label>`;
-      html += `<label><input type="radio" name="q${i}" value="错误"> 错误</label>`;
-      html += `</div>`;
-    } else if (t === "fill") {
-      html += `<input type="text" name="q${i}" placeholder="填写答案">`;
-    } else {
-      html += `<textarea name="q${i}" rows="3" placeholder="在此作答"></textarea>`;
-    }
-
-    html += `<div class="ans" id="ans${i}">`;
-    html += `<div>参考答案：<b>${q.answer ?? ""}</b></div>`;
-    html += `<div style="margin-top:4px;color:#9ca3af">${q.explain ?? ""}</div>`;
     html += `</div>`;
-    html += `</div>`;
-  });
-
-  html += `</div>`;
-  box.innerHTML = html;
-  box.scrollIntoView();
+    area.innerHTML = html;
+    area.scrollIntoView({ behavior: 'smooth' });
 }
 
 function submitPaper() {
-  const list = window._paper;
-  if (!list || !list.length) return alert("先生成试卷。");
+    if(currentPaper.length === 0) return alert("请先生成试卷");
+    
+    let total = 0, got = 0;
+    currentPaper.forEach((q, i) => {
+        const s = q.score || 5;
+        total += s;
+        const userVal = document.querySelector(`input[name="q${i}"]:checked`)?.value || document.querySelector(`input[name="q${i}"]`)?.value || "";
+        
+        const isRight = String(userVal).trim() === String(q.answer).trim();
+        if(isRight) got += s;
 
-  let total = 0, got = 0;
-  list.forEach((q, i) => {
-    const score = Number(q.score) || 0;
-    total += score;
-    const t = (q.type || "").toLowerCase();
+        const ansEl = document.getElementById(`ans${i}`);
+        ansEl.classList.add("show");
+        const mark = isRight ? '<span class="right">✓ 正确</span>' : '<span class="wrong">✗ 错误</span>';
+        ansEl.innerHTML = `<div style="margin-bottom:5px">${mark}</div>` + ansEl.innerHTML;
+    });
 
-    let user = "";
-    if (t === "choice" || t === "judge") {
-      const radio = document.querySelector(`input[name="q${i}"]:checked`);
-      if (radio) user = radio.value;
-    } else if (t === "fill") {
-      const inp = document.querySelector(`input[name="q${i}"]`);
-      if (inp) user = inp.value.trim();
-    } else {
-      const area = document.querySelector(`textarea[name="q${i}"]`);
-      if (area) user = area.value.trim();
-    }
-
-    const right = String(q.answer ?? "").trim();
-    const ok = right && user && user.toLowerCase() === right.toLowerCase();
-    if (ok) got += score;
-
-    const ansEl = document.getElementById("ans" + i);
-    ansEl.classList.add("show");
-    const mark = ok ? '<span class="right">✓ 正确</span>' : '<span class="wrong">✗ 错误</span>';
-    ansEl.insertAdjacentHTML("afterbegin", `<div style="margin-bottom:6px">${mark}</div>`);
-  });
-
-  const old = document.querySelector(".bar");
-  if (old) old.remove();
-
-  const bar = document.createElement("div");
-  bar.className = "bar";
-  bar.innerHTML = `
-    <div class="score-box"><div class="score-num">${got}</div><div>得分</div></div>
-    <div class="score-box"><div class="score-num">${total}</div><div>总分</div></div>
-    <div class="score-box"><div class="score-num">${total ? Math.round(got / total * 100) : 0}%</div><div>正确率</div></div>
-  `;
-  const paper = document.querySelector(".paper");
-  paper.prepend(bar);
+    let bar = `<div class="score-bar">
+        <div class="score-box"><div class="score-num">${got}</div><div>得分</div></div>
+        <div class="score-box"><div class="score-num">${total}</div><div>总分</div></div>
+        <div class="score-box"><div class="score-num">${total ? Math.round(got/total*100) : 0}%</div><div>正确率</div></div>
+    </div>`;
+    
+    let p = document.querySelector(".paper");
+    if(p) p.insertAdjacentHTML('afterbegin', bar);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function exportPaper() {
-  const html = document.querySelector(".paper");
-  if (!html) return alert("先生成试卷。");
-  const blob = new Blob([`<meta charset="utf-8">${html.outerHTML}`], { type: "text/html" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "试卷.html";
-  a.click();
-}
-
-function reset() {
-  document.getElementById("paper").innerHTML = "";
-  document.getElementById("source").value = "";
-  window._paper = null;
+function resetView() {
+    document.getElementById("paperArea").innerHTML = "";
+    currentPaper = [];
 }
 </script>
 </body>
