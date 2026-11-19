@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智能出题器</title>
+    <title>全能智能出题器</title>
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; background: #0b1220; color: #e6edf3; font-family: -apple-system, "PingFang SC", sans-serif; }
@@ -19,32 +19,56 @@
         button { padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; margin-right: 10px; margin-top: 12px; }
         .primary { background: #2563eb; color: #fff; }
         .ghost { background: #1f2937; color: #e5e7eb; border: 1px solid #374151; }
+        
         .q-item { background: #111827; border: 1px solid #1f2a3a; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
-        .opts label { display: block; padding: 8px 12px; border-radius: 8px; margin: 4px 0; cursor: pointer; }
-        .opts label:hover { background: #1f2937; }
+        
+        /* 选项样式 */
+        .opts label, .yn-btn { display: block; padding: 8px 12px; border-radius: 8px; margin: 4px 0; cursor: pointer; }
+        .opts label:hover, .yn-btn:hover { background: #1f2937; }
         .opts input { margin-right: 10px; }
-        .ans-area { margin-top: 10px; padding: 10px; background: #0b1220; border-radius: 8px; display: none; }
+        
+        /* 输入框样式 */
+        .input-area { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #2a3548; background: #0b1220; color: #e6edf3; font-size: .9rem; margin-top: 6px; }
+        
+        /* 答案解析区 */
+        .ans-area { margin-top: 12px; padding: 10px; background: #0b1220; border-radius: 8px; display: none; font-size: .9rem; }
         .ans-area.show { display: block; }
         .right { color: #34d399; font-weight: bold; }
         .wrong { color: #f87171; font-weight: bold; }
-        .score-bar { position: sticky; top: 0; background: #0b1220; padding: 15px 0; border-bottom: 1px solid #1f2a3a; margin-bottom: 15px; display: flex; gap: 10px; z-index: 10; }
+        
+        /* 评分条 */
+        .score-bar { position: sticky; top: 0; background: #0b1220; padding: 15px 0; border-bottom: 1px solid #1f2a3a; margin-bottom: 15px; display: flex; gap: 10px; z-index: 10; align-items: center; }
         .score-box { text-align: center; padding: 10px; border-radius: 10px; background: #111827; border: 1px solid #1f2a3a; flex: 1; }
         .score-num { font-size: 1.4rem; color: #fbbf24; font-weight: bold; }
     </style>
 </head>
 <body>
 <div class="wrap">
-    <h1>智能出题器</h1>
+    <h1>全能智能出题器 (四合一)</h1>
     <div class="card">
-        <label>粘贴题目（每行一题）</label>
-        <textarea id="rawInput" placeholder="格式示例：
-13. 计算机的指令是一组二进制代码。（） 答案：Y
-14. 通常把运算器、控制器合称为计算机系统。（） 答案：N"></textarea>
-        <div class="hint">判断题用（），答案写 Y 或 N；选择题用 A/B/C/D 作答</div>
+        <label>1. 粘贴题目（每行一题，支持多种格式）</label>
+        <textarea id="rawInput" placeholder="你可以直接粘贴以下格式的题库：
+
+【判断题】
+1. 计算机包含硬件和软件（） 答案：Y
+2. 计算机的指令是一组二进制代码。（） 答案：N
+
+【选择题】
+3. 计算机的体系结构是指（D）
+4. 第一代电子计算机的主要标志是（D）
+5. 1+1=（） 答案：B
+
+【填空题】
+6. 计算机硬件系统由运算器、控制器和__组成。 答案：存储器
+
+【简答题】
+7. 请简述计算机硬件的五大部件。 答案：运算器、控制器、存储器、输入设备、输出设备"></textarea>
+        <div class="hint">支持判断题、选择题、填空题、简答题。系统会自动识别题型。</div>
+        
         <div class="row">
             <div>
-                <label>抽取题量</label>
-                <input type="number" id="countInput" value="3" min="1">
+                <label>2. 抽取题量</label>
+                <input type="number" id="countInput" value="4" min="1">
             </div>
         </div>
         <button class="primary" onclick="generate()">生成试卷</button>
@@ -52,46 +76,104 @@
     </div>
     <div id="paperArea"></div>
 </div>
+
 <script>
 let paper = [];
 
+// 智能解析单行题目
 function parseLine(line) {
     line = line.trim();
     if (!line) return null;
+
     let answer = '';
-    const am = line.match(/答案[：:]\s*([YNABCD])/i);
-    if (am) { answer = am[1].toUpperCase(); line = line.replace(/答案[：:]\s*[YNABCD]/i, '').trim(); }
-    let options = [];
-    const om = line.match(/\(([YNABCD])\)/gi);
-    if (om && !am) {
-        options = om.map(o => o.replace(/[()]/g, ''));
-        line = line.replace(/\([YNABCD]\)/gi, '（）');
+    let question = line;
+    let type = 'choice'; // 默认先当选择题，后面根据答案类型覆盖
+
+    // 1. 提取末尾的 “答案：X” (填空题/简答题)
+    const am = line.match(/答案[：:]\s*(.+)$/i);
+    if (am) {
+        answer = am[1].trim();
+        question = line.replace(/答案[：:]\s*.+$/i, '').trim();
+        // 根据答案长度和特征判断是否为简答题
+        if (answer.length > 50 || (answer.includes('。') && answer.split('。').length > 1)) {
+            type = 'essay'; // 简答题
+        } else {
+            type = 'fill';  // 填空题
+        }
+    } else {
+        // 2. 匹配题干中的答案 (选择题/判断题)
+        // 匹配中文括号里的字母，如 （D） 或 （Y）
+        const bm = question.match(/（([YNABCD]）/i);
+        if (bm) {
+            answer = bm[1].toUpperCase().replace(/）/, '');
+            question = question.replace(/（[YNABCD]）/i, '（）');
+        }
     }
-    return { question: line, options: options, answer: answer, score: 5 };
+
+    // 3. 最终确定题型
+    if (!type || type === 'choice') {
+        if (['Y', 'N'].includes(answer)) {
+            type = 'judge'; // 判断题
+        } else if (['A', 'B', 'C', 'D'].includes(answer)) {
+            type = 'choice'; // 选择题
+        }
+    }
+
+    return { question: question, answer: answer, type: type, score: 5 };
 }
 
 function generate() {
     const text = document.getElementById('rawInput').value;
     const lines = text.split('\n').filter(l => l.trim());
-    const questions = lines.map(parseLine).filter(q => q);
-    if (!questions.length) return alert('没有识别到题目，请检查格式');
-    const count = parseInt(document.getElementById('countInput').value) || 3;
+    
+    let questions = [];
+    lines.forEach(l => {
+        const q = parseLine(l);
+        if(q && q.answer) questions.push(q); // 确保题目有答案
+    });
+
+    if (!questions.length) return alert('没有识别到有效题目，请检查格式！');
+
+    const count = parseInt(document.getElementById('countInput').value) || 4;
+    
+    // 随机打乱并抽取
     questions.sort(() => Math.random() - 0.5);
     paper = questions.slice(0, count);
+
     render();
 }
 
 function render() {
-    let html = '<div class="card"><button class="ghost" onclick="submit()">提交评分</button></div>';
+    let html = '<div class="card" style="background:transparent;border:none;padding:0;"><button class="ghost" onclick="submit()">提交评分</button></div>';
+    
     paper.forEach((q, i) => {
-        html += `<div class="q-item"><b>第${i+1}题</b>（${q.score}分）<br>${q.question}<br><div class="opts">`;
-        if (q.options.length > 0) {
-            q.options.forEach(o => { html += `<label><input type="radio" name="q${i}" value="${o}"> ${o}</label>`; });
-        } else {
-            html += `<label><input type="radio" name="q${i}" value="Y"> Y</label><label><input type="radio" name="q${i}" value="N"> N</label>`;
+        html += `<div class="q-item">
+            <b>第${i+1}题</b>（${q.score}分）
+            <div style="margin: 8px 0;">${q.question}</div>`;
+
+        // 根据题型渲染不同的答题区域
+        if (q.type === 'choice') {
+            html += `<div class="opts">
+                <label><input type="radio" name="q${i}" value="A"> A</label>
+                <label><input type="radio" name="q${i}" value="B"> B</label>
+                <label><input type="radio" name="q${i}" value="C"> C</label>
+                <label><input type="radio" name="q${i}" value="D"> D</label>
+            </div>`;
+        } else if (q.type === 'judge') {
+            html += `<div class="opts">
+                <label><input type="radio" name="q${i}" value="Y"> Y (正确)</label>
+                <label><input type="radio" name="q${i}" value="N"> N (错误)</label>
+            </div>`;
+        } else if (q.type === 'fill') {
+            html += `<input class="input-area" type="text" id="input_q${i}" placeholder="在此输入答案">`;
+        } else if (q.type === 'essay') {
+            html += `<textarea class="input-area" id="input_q${i}" rows="3" placeholder="在此输入答案"></textarea>`;
         }
-        html += `</div><div class="ans-area" id="ans${i}"></div></div>`;
+
+        html += `<div class="ans-area" id="ans${i}"></div>
+        </div>`;
     });
+
     document.getElementById('paperArea').innerHTML = html;
     document.getElementById('paperArea').scrollIntoView({ behavior: 'smooth' });
 }
@@ -100,20 +182,40 @@ function submit() {
     let total = 0, got = 0;
     paper.forEach((q, i) => {
         total += q.score;
-        const val = document.querySelector(`input[name="q${i}"]:checked`)?.value || '';
-        const ok = val === q.answer;
+        let val = '';
+        
+        // 获取用户输入的答案
+        if (q.type === 'choice' || q.type === 'judge') {
+            val = document.querySelector(`input[name="q${i}"]:checked`)?.value || '';
+        } else {
+            val = document.getElementById(`input_q${i}`)?.value || '';
+        }
+
+        // 判断对错 (填空题和简答题忽略大小写和首尾空格)
+        const ok = val.trim().toLowerCase() === q.answer.trim().toLowerCase();
         if (ok) got += q.score;
+
         const el = document.getElementById(`ans${i}`);
         el.classList.add('show');
-        el.innerHTML = `${ok ? '<span class="right">✓ 正确</span>' : '<span class="wrong">✗ 错误</span>'} 答案：${q.answer}`;
+        let html = '';
+        if (q.type === 'essay') {
+            html = `<div>参考答案：<br>${q.answer}</div>`;
+        } else {
+            html = `${ok ? '<span class="right">✓ 正确</span>' : '<span class="wrong">✗ 错误</span>'} 答案：${q.answer}`;
+        }
+        el.innerHTML = html;
     });
+
     const pct = total ? Math.round(got/total*100) : 0;
     const bar = `<div class="score-bar">
         <div class="score-box"><div class="score-num">${got}</div>得分</div>
         <div class="score-box"><div class="score-num">${total}</div>总分</div>
         <div class="score-box"><div class="score-num">${pct}%</div>正确率</div>
     </div>`;
-    document.querySelector('.wrap').insertAdjacentHTML('afterbegin', bar);
+    
+    if(!document.querySelector('.score-bar')) {
+        document.querySelector('.wrap').insertAdjacentHTML('afterbegin', bar);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
