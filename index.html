@@ -1,315 +1,238 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>闯关答题器 - 错题回顾版</title>
-<style>
-    * { box-sizing: border-box; }
-    body { margin: 0; background: #0b1220; color: #e6edf3; font-family: -apple-system, "PingFang SC", sans-serif; display: flex; justify-content: center; min-height: 100vh; }
-    .wrap { max-width: 680px; width: 100%; padding: 20px; margin: 40px auto; }
-    .card { background: #111827; border: 1px solid #1f2a3a; border-radius: 12px; padding: 30px 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-    h1 { font-size: 1.5rem; margin-bottom: 10px; text-align: center; letter-spacing: 1px; }
-    .sub-title { text-align: center; color: #9ca3af; font-size: 0.9rem; margin-bottom: 25px; }
-    .btn-primary { width: 100%; padding: 14px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 1rem; background: #2563eb; color: #fff; transition: 0.2s; margin-top: 20px; }
-    .btn-primary:hover { background: #1d4ed8; }
-    .game-area { display: none; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #1f2a3a; padding-bottom: 15px; }
-    .header .info { font-size: 0.95rem; color: #9ca3af; }
-    .header .score { color: #fbbf24; font-weight: bold; }
-    .q-content { font-size: 1.15rem; line-height: 1.6; margin-bottom: 25px; font-weight: 500; }
-    .opts { display: flex; flex-direction: column; gap: 12px; }
-    .opt-btn { background: #1e293b; border: 1px solid #334155; padding: 15px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; font-size: 1rem; }
-    .opt-btn:hover { background: #2563eb; border-color: #3b82f6; }
-    .opt-btn.correct { background: #064e3b; border-color: #10b981; color: #34d399; }
-    .opt-btn.wrong { background: #7f1d1d; border-color: #ef4444; color: #f87171; }
-    .judge-btns { display: flex; gap: 12px; }
-    .judge-btns .opt-btn { flex: 1; justify-content: center; }
-    .bottom-btns { display: flex; gap: 12px; margin-top: 20px; }
-    .btn-skip { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #4b5563; background: #1f2937; color: #9ca3af; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
-    .btn-skip:hover { background: #374151; color: #e6edf3; }
-    .btn-reveal { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #d97706; background: rgba(217, 119, 6, 0.1); color: #fbbf24; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
-    .btn-reveal:hover { background: rgba(217, 119, 6, 0.2); }
-    .hint-text { margin-top: 15px; color: #fbbf24; font-size: 0.95rem; display: none; text-align: center; background: rgba(251, 191, 36, 0.1); padding: 10px; border-radius: 6px; }
-    .answer-reveal { margin-top: 15px; color: #34d399; font-size: 0.95rem; display: none; text-align: center; background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 6px; }
-    .fill-input-wrap { width: 100%; display: flex; flex-direction: column; gap: 12px; }
-    .fill-input-wrap input { width: 100%; padding: 15px; border-radius: 8px; border: 1px solid #334155; background: #0b1220; color: white; font-size: 1rem; outline: none; }
-    .btn-submit { width: 100%; padding: 14px; border-radius: 8px; border: none; background: #2563eb; color: white; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
-    .btn-submit:hover { background: #1d4ed8; }
-    .badge { margin-right: 8px; background: #ef4444; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>题库练习系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Microsoft YaHei", sans-serif; background: #f0f2f5; min-height: 100vh; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { text-align: center; color: #333; margin: 20px 0; }
+        .exam-list { display: grid; gap: 15px; margin-top: 30px; }
+        .exam-btn { padding: 20px; background: #fff; border: none; border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; text-align: left;
+            font-size: 18px; transition: all 0.3s; }
+        .exam-btn:hover { transform: translateY(-3px); box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+        .exam-btn .count { color: #999; font-size: 14px; margin-top: 5px; }
+        .hidden { display: none !important; }
+        .question-card { background: #fff; border-radius: 10px; padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-top: 20px; }
+        .question-text { font-size: 17px; line-height: 1.8; margin-bottom: 20px; color: #333; white-space: pre-wrap;}
+        .options label { display: block; padding: 12px 15px; margin: 8px 0; background: #f8f9fa;
+            border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+        .options label:hover { background: #e9ecef; }
+        .options input { margin-right: 10px; }
+        .fill-input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd;
+            border-radius: 8px; font-size: 16px; }
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
+        .btn-primary { background: #4a90d9; color: #fff; }
+        .btn-primary:hover { background: #3a7bc8; }
+        .btn-secondary { background: #e0e0e0; color: #333; }
+        .btn-secondary:hover { background: #d0d0d0; }
+        .progress { text-align: center; color: #666; margin: 15px 0; }
+        .result { text-align: center; padding: 40px; }
+        .result h2 { color: #4a90d9; margin-bottom: 20px; }
+        .result .score { font-size: 60px; font-weight: bold; color: #4a90d9; }
+        .result .detail { margin: 20px 0; color: #666; line-height: 2; text-align: left; }
+        .back-btn { margin-top: 20px; }
+        .answer-reveal { margin-top: 15px; padding: 15px; background: #f6ffed;
+            border-radius: 8px; border-left: 4px solid #52c41a; color: #333; }
+    </style>
 </head>
 <body>
-<div class="wrap">
-    <div class="card" id="startScreen">
-        <h1>🎯 闯关答题器</h1>
-        <div class="sub-title">第一章 计算机系统概述</div>
-        <div style="color: #9ca3af; text-align: center; font-size: 0.95rem; line-height: 1.6; padding: 10px 0;">
-            <p>共 44 道题（20道选择题 + 10道填空题 + 14道判断题）</p>
-            <p>包含错题回顾功能：答错或跳过的题目将在最后重新测试。</p>
+    <div class="container">
+        <!-- 首页 -->
+        <div id="home">
+            <h1>📚 题库练习系统</h1>
+            <div class="exam-list" id="examList"></div>
         </div>
-        <button class="btn-primary" onclick="startGame()">开始闯关</button>
-    </div>
 
-    <div class="card game-area" id="gameScreen">
-        <div class="header">
-            <div class="info" id="progressText">进度：0 / 44</div>
-            <div class="info score" id="scoreText">得分：0</div>
-        </div>
-        <div class="q-content" id="questionText"></div>
-        <div class="opts" id="optionsContainer"></div>
-        <div class="hint-text" id="hintText"></div>
-        <div class="answer-reveal" id="answerReveal"></div>
-        <div class="bottom-btns" id="bottomBtns">
-            <button class="btn-skip" onclick="markAndNext()">⏭ 跳过并记错题</button>
-            <button class="btn-reveal" onclick="revealAndNext()">👁 看答案并记错题</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    // ================= 题库 =================
-    const CHOICES = [
-        { answer: "C", question: "计算机的两个主要组成部分是（ ）。", options: ["A.输入和输出", "B.存储和程序", "C.硬件和软件", "D.显示器和打印机"] },
-        { answer: "D", question: "第一代电子计算机的主要标志是（ ）。", options: ["A.机械式", "B.机械电子式", "C.中小规模集成电路", "D.电子管"] },
-        { answer: "A", question: "第二代电子计算机的主要标志是（ ）。", options: ["A.晶体管", "B.机械电子式", "C.中小规模集成电路", "D.电子管"] },
-        { answer: "C", question: "第三代电子计算机的主要标志是（ ）。", options: ["A.电子管", "B.晶体管", "C.中小规模集成电路", "D.大规模和超大规模集成电路"] },
-        { answer: "A", question: "第四代电子计算机的主要标志是（ ）。", options: ["A.大规模和超大规模集成电路", "B.晶体管", "C.中小规模集成电路", "D.电子管"] },
-        { answer: "B", question: "计算机的特点表现在它的高速、精确的计算、强大的存储和（ ），以及可以自动处理和网络功能。", options: ["A.体积小", "B.逻辑处理能力", "C.功耗低", "D.价格便宜"] },
-        { answer: "C", question: "第一代至第四代计算机使用的基本元件分别是（ ）。", options: ["A.晶体管、电子管、中小规模集成电路、大规模和超大规模集成电路", "B.晶体管、电子管、大规模集成电路、超大规模集成电路", "C.电子管、晶体管、中小规模集成电路、大规模和超大规模集成电路", "D.电子管、晶体管、大规模集成电路、超大规模集成电路"] },
-        { answer: "C", question: "计算机的体系结构是指（ ）。", options: ["A.研究计算机的算法", "B.研究计算机的硬件构成", "C.研究计算机硬件和软件的构成", "D.研究计算机应用领域"] },
-        { answer: "C", question: "计算机存储器容量以（ ）为基本单位。", options: ["A.字", "B.位", "C.字节", "D.比特"] },
-        { answer: "C", question: "在计算机中，CPU是在一块大规模集成电路上把（ ）和控制器集成在一起。", options: ["A.寄存器", "B.存储器", "C.ALU", "D.指令译码器"] },
-        { answer: "C", question: "接口（Interface）是连接外围设备的电路，位于I/O设备和（ ）之间。", options: ["A.控制器和运算器", "B.存储器和运算器", "C.CPU和存储器", "D.存储器和控制器"] },
-        { answer: "A", question: "在微机系统中，可以用作输入设备的是（ ）。", options: ["A.键盘", "B.音箱", "C.显示器", "D.打印机"] },
-        { answer: "D", question: "应用软件指（ ）。", options: ["A.所有能够使用的软件", "B.能够被各应用单位共同使用的软件", "C.所有计算机上都能够使用的软件", "D.专门为某一应用而编写的软件"] },
-        { answer: "C", question: "计算机软件系统一般包括（ ）。", options: ["A.系统软件与文字处理软件", "B.操作系统和程序设计语言", "C.系统软件和应用软件", "D.应用软件和管理软件"] },
-        { answer: "B", question: "通常把运算器和（ ）合称为CPU。", options: ["A.存储器", "B.控制器", "C.中央处理器", "D.I/O设备"] },
-        { answer: "B", question: "常用主机的（ ）反映微机的速度指标。", options: ["A.存取速度", "B.时钟频率", "C.内存容量", "D.字长"] },
-        { answer: "B", question: "在微机系统中，BIOS（基本输入/输出系统）存放在（ ）中。", options: ["A.RAM", "B.ROM", "C.硬盘", "D.寄存器"] },
-        { answer: "B", question: "计算机的CPU每执行（ ），就完成一步基本运算或判断。", options: ["A.一条语句", "B.一条指令", "C.一段程序", "D.一个软件"] },
-        { answer: "D", question: "下列存储器中，存取速度最快的是（ ）。", options: ["A.软盘", "B.硬盘", "C.光盘", "D.内存"] },
-        { answer: "B", question: "计算机通常所说的386、486、586、Pentium，这是指该机配置的（ ）而言。", options: ["A.总线标准的类型", "B.CPU的型号", "C.CPU的速度", "D.内存容量"] }
-    ];
-
-    const FILLS = [
-        { answer: ["8"], question: "在计算机中，规定一个字节由 ____ 个二进制位组成。" },
-        { answer: ["10"], question: "在计算机中，1K是2的 ____ 次方。" },
-        { answer: ["内存储器", "外存储器", "存储容量", "存储周期"], question: "存储系统是计算机的关键子系统之一，存储器的种类一般可以分为 ____ 和 ____。它的常用技术指标为 ____ 和 ____。" },
-        { answer: ["数据总线", "地址总线", "控制总线", "总线上传送信息不同"], question: "计算机总线可以分为 ____、____、____ 等类型，它们的划分依据是 ____。" },
-        { answer: ["运算器", "控制器"], question: "微机的CPU由 ____ 和 ____ 组合而成。" },
-        { answer: ["主频"], question: "衡量CPU性能的主要技术参数是 ____、字长和浮点运算能力等。" },
-        { answer: ["RAM", "ROM", "易失", "读取"], question: "内存分为 ____ 和 ____。RAM存储器具有 ____ 性。只读存储器中存储的数据一般情况下只能 ____，断电后保存在只读存储器内的数据不会消失。" },
-        { answer: ["用户", "计算机"], question: "输入设备是 ____ 和 ____ 系统之间进行信息交互的装置。" },
-        { answer: ["系统软件", "应用软件"], question: "计算机软件包括 ____ 和 ____ 两大类。" },
-        { answer: ["机器语言", "汇编语言", "高级语言"], question: "程序设计语言按其级别可以分为 ____、____ 和 ____ 三大类。" }
-    ];
-
-    const JUDGES = [
-        { answer: "N", question: "第一代计算机的主存储器采用的是磁鼓。" },
-        { answer: "N", question: "计算机辅助教学的英文缩写是CAT。" },
-        { answer: "Y", question: "第二代计算机可以采用高级语言进行程序设计。" },
-        { answer: "Y", question: "第一代计算机只能使用机器语言进行程序设计。" },
-        { answer: "Y", question: "程序一定要调入内存后才能运行。" },
-        { answer: "N", question: "SRAM存储器是动态随机存储器。" },
-        { answer: "Y", question: "程序是能够完成特定功能的一组指令序列。" },
-        { answer: "Y", question: "磁盘既可以作为输入设备，也可以作为输出设备。" },
-        { answer: "N", question: "计算机系统功能的强弱完全由CPU决定。" },
-        { answer: "N", question: "任何型号的计算机系统均采用统一的指令系统。" },
-        { answer: "Y", question: "系统软件包括操作系统、语言处理程序和各种服务程序等。" },
-        { answer: "Y", question: "数据库管理系统是系统软件。" },
-        { answer: "Y", question: "计算机的指令是一组二进制代码，是计算机可以直接执行的操作命令。" },
-        { answer: "N", question: "通常把运算器、控制器、存储器和输入/输出设备合称为计算机系统。" }
-    ];
-
-    // ================= 状态 =================
-    let questions = [];
-    let currentIndex = 0;
-    let score = 0;
-    let wrongList = [];
-    let isReviewMode = false;
-    let gameScreenHTML = '';   // 备份答题界面原始HTML（修复关键）
-
-    // ================= 开始 =================
-    function startGame() {
-        if (!gameScreenHTML) {
-            gameScreenHTML = document.getElementById('gameScreen').innerHTML;
-        }
-        let qList = [];
-        CHOICES.forEach(q => qList.push({ ...q, type: 'choice' }));
-        FILLS.forEach(q => qList.push({ ...q, type: 'fill' }));
-        JUDGES.forEach(q => qList.push({ ...q, type: 'judge' }));
-
-        wrongList = [];
-        score = 0;
-        isReviewMode = false;
-        resetGame(qList);
-    }
-
-    // ================= 重置开局（关键修复：先还原界面）=================
-    function resetGame(qList) {
-        const gameScreen = document.getElementById('gameScreen');
-        gameScreen.innerHTML = gameScreenHTML;   // 把被结算页覆盖的答题区还原
-        gameScreen.style.display = 'block';
-
-        questions = [...qList];
-        questions.sort(() => Math.random() - 0.5);
-
-        document.getElementById('startScreen').style.display = 'none';
-        currentIndex = 0;
-        showQuestion();
-    }
-
-    // ================= 渲染题目 =================
-    function showQuestion() {
-        const q = questions[currentIndex];
-        let progressInfo = `进度：${currentIndex + 1} / ${questions.length}`;
-        if (isReviewMode) {
-            progressInfo = `<span class="badge">错题模式</span>` + progressInfo;
-        }
-
-        document.getElementById('progressText').innerHTML = progressInfo;
-        document.getElementById('scoreText').innerText = `得分：${score}`;
-        document.getElementById('questionText').innerText = q.question;
-        document.getElementById('hintText').style.display = 'none';
-        document.getElementById('answerReveal').style.display = 'none';
-        document.getElementById('bottomBtns').style.display = 'flex';
-
-        const container = document.getElementById('optionsContainer');
-        container.innerHTML = '';
-        container.className = 'opts';
-
-        if (q.type === 'judge') {
-            container.classList.add('judge-btns');
-            container.innerHTML = `
-                <div class="opt-btn" onclick="checkAnswer(this, 'Y')">✅ 正确</div>
-                <div class="opt-btn" onclick="checkAnswer(this, 'N')">❌ 错误</div>
-            `;
-        } else if (q.type === 'fill') {
-            container.innerHTML = `
-                <div class="fill-input-wrap">
-                    <input id="fillInput" type="text" placeholder="请输入你的答案（多个答案用空格或顿号隔开）">
-                    <button class="btn-submit" onclick="checkFill()">提交答案</button>
+        <!-- 答题页 -->
+        <div id="quiz" class="hidden">
+            <div class="progress" id="progress"></div>
+            <div class="question-card">
+                <div class="question-text" id="questionText"></div>
+                <div id="inputArea"></div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="prevQuestion()">上一题</button>
+                    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">下一题</button>
                 </div>
-            `;
-        } else {
-            q.options.forEach((opt) => {
-                const div = document.createElement('div');
-                div.className = 'opt-btn';
-                div.innerText = opt;
-                div.onclick = function () { checkAnswer(this, opt.charAt(0)); };
-                container.appendChild(div);
-            });
+            </div>
+            <button class="btn btn-secondary back-btn" onclick="backHome()">返回首页</button>
+        </div>
+
+        <!-- 结果页 -->
+        <div id="result" class="hidden">
+            <div class="question-card result">
+                <h2>🎉 答题完成！</h2>
+                <div class="score" id="scoreText"></div>
+                <div class="detail" id="detailText"></div>
+                <button class="btn btn-primary" onclick="backHome()">返回首页</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // 引入外部题库数据文件
+    // 请确保 data.js 和 index.html 在同一个文件夹下
+    </script>
+    <script src="data.js"></script>
+    <script>
+    // ===================== 核心逻辑 =====================
+    let currentExamKey = null;
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let userAnswers = [];
+
+    // 初始化首页
+    function initHome() {
+        const examList = document.getElementById('examList');
+        examList.innerHTML = '';
+        
+        // 检查 EXAMS 变量是否已加载
+        if (typeof EXAMS === 'undefined') {
+            examList.innerHTML = '<p style="text-align:center; color:red;">题库数据未加载，请检查 data.js 是否配置正确！</p>';
+            return;
         }
-    }
 
-    // ================= 选择/判断判题 =================
-    function checkAnswer(btn, userAnswer) {
-        const q = questions[currentIndex];
-        if (userAnswer === q.answer) {
-            btn.classList.add('correct');
-            score += 5;
-            document.getElementById('scoreText').innerText = `得分：${score}`;
-            document.getElementById('bottomBtns').style.display = 'none';
-            setTimeout(() => { nextQuestion(); }, 600);
-        } else {
-            btn.classList.add('wrong');
-            document.getElementById('bottomBtns').style.display = 'none';
-            revealAnswer();
-        }
-    }
-
-    // ================= 填空题判题 =================
-    function checkFill() {
-        const input = document.getElementById('fillInput');
-        const val = input.value.trim().replace(/[、，,;]/g, ' ');
-        const q = questions[currentIndex];
-
-        const isCorrect = q.answer.every(keyword => {
-            return val.toLowerCase().replace(/\s/g, '').includes(keyword.toLowerCase().replace(/\s/g, ''));
+        Object.keys(EXAMS).forEach(key => {
+            const exam = EXAMS[key];
+            const total = (exam.CHOICES?.length || 0) + (exam.FILLS?.length || 0) + (exam.JUDGES?.length || 0);
+            const btn = document.createElement('button');
+            btn.className = 'exam-btn';
+            btn.innerHTML = `${exam.name}<div class="count">共 ${total} 题</div>`;
+            btn.onclick = () => startExam(key);
+            examList.appendChild(btn);
         });
+    }
 
-        if (isCorrect) {
-            input.style.borderColor = '#10b981';
-            input.style.background = '#064e3b';
-            score += 5;
-            document.getElementById('scoreText').innerText = `得分：${score}`;
-            document.getElementById('bottomBtns').style.display = 'none';
-            setTimeout(() => { nextQuestion(); }, 600);
-        } else {
-            input.style.borderColor = '#ef4444';
-            input.style.background = '#7f1d1d';
-            document.getElementById('bottomBtns').style.display = 'none';
-            revealAnswer();
+    // 开始考试
+    function startExam(key) {
+        currentExamKey = key;
+        const exam = EXAMS[key];
+        currentQuestions = [];
+        
+        // 合并题目并打乱顺序
+        if (exam.CHOICES) currentQuestions.push(...exam.CHOICES.map(q => ({...q, type: 'choice'})));
+        if (exam.FILLS) currentQuestions.push(...exam.FILLS.map(q => ({...q, type: 'fill'})));
+        if (exam.JUDGES) currentQuestions.push(...exam.JUDGES.map(q => ({...q, type: 'judge'})));
+        
+        currentQuestions.sort(() => Math.random() - 0.5);
+        
+        currentIndex = 0;
+        userAnswers = new Array(currentQuestions.length).fill(null);
+        
+        document.getElementById('home').classList.add('hidden');
+        document.getElementById('result').classList.add('hidden');
+        document.getElementById('quiz').classList.remove('hidden');
+        
+        renderQuestion();
+    }
+
+    // 渲染题目
+    function renderQuestion() {
+        const q = currentQuestions[currentIndex];
+        document.getElementById('progress').textContent = `第 ${currentIndex + 1} / ${currentQuestions.length} 题`;
+        document.getElementById('questionText').textContent = q.question;
+        
+        const inputArea = document.getElementById('inputArea');
+        inputArea.innerHTML = '';
+        
+        if (q.type === 'choice' || q.type === 'judge') {
+            const options = q.type === 'judge' ? ['正确', '错误'] : q.options;
+            const answers = q.type === 'judge' ? ['Y', 'N'] : q.options.map((_, i) => String.fromCharCode(65 + i));
+            
+            options.forEach((opt, i) => {
+                const label = document.createElement('label');
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.name = 'answer';
+                input.value = answers[i];
+                if (userAnswers[currentIndex] === answers[i]) input.checked = true;
+                input.onchange = (e) => userAnswers[currentIndex] = e.target.value;
+                
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(q.type === 'judge' ? opt : opt));
+                inputArea.appendChild(label);
+            });
+        } else if (q.type === 'fill') {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'fill-input';
+            input.placeholder = '请输入答案...';
+            input.value = userAnswers[currentIndex] || '';
+            input.oninput = (e) => userAnswers[currentIndex] = e.target.value;
+            inputArea.appendChild(input);
         }
+        
+        document.getElementById('nextBtn').textContent = currentIndex === currentQuestions.length - 1 ? '提交' : '下一题';
     }
 
-    // ================= 底部按钮 =================
-    function markAndNext() {
-        addToWrongList(questions[currentIndex]);
-        nextQuestion();
-    }
-
-    function revealAndNext() {
-        revealAnswer();
-        document.getElementById('bottomBtns').style.display = 'none';
-        setTimeout(() => { nextQuestion(); }, 2000);
-    }
-
-    // ================= 显示答案 =================
-    function revealAnswer() {
-        const q = questions[currentIndex];
-        addToWrongList(q);
-        const reveal = document.getElementById('answerReveal');
-        if (q.type === 'fill') {
-            reveal.innerText = "💡 参考答案：" + q.answer.join("、");
-        } else if (q.type === 'judge') {
-            reveal.innerText = "💡 正确答案：" + (q.answer === 'Y' ? "正确" : "错误");
-        } else {
-            reveal.innerText = "💡 正确答案：" + q.answer;
-        }
-        reveal.style.display = 'block';
-    }
-
-    // ================= 错题本（去重）=================
-    function addToWrongList(q) {
-        const isExist = wrongList.some(w => w.question === q.question);
-        if (!isExist) wrongList.push(q);
-    }
-
-    // ================= 下一题 / 结算 =================
+    // 下一题
     function nextQuestion() {
-        currentIndex++;
-        if (currentIndex >= questions.length) {
-            if (wrongList.length > 0) {
-                const n = wrongList.length;
-                document.getElementById('gameScreen').innerHTML = `
-                    <div style="text-align: center; padding: 40px 0;">
-                        <h2 style="color: #fbbf24; font-size: 1.5rem; margin-bottom: 20px;">📝 还有 ${n} 道错题未掌握</h2>
-                        <p style="font-size: 1rem; color: #9ca3af; margin-bottom: 30px;">现在进入错题回顾模式，必须全部答对才算通关！</p>
-                        <button class="btn-primary" onclick="startReview()">开始错题重做</button>
-                    </div>`;
-            } else {
-                document.getElementById('gameScreen').innerHTML = `
-                    <div style="text-align: center; padding: 40px 0;">
-                        <h2 style="color: #10b981; font-size: 1.8rem; margin-bottom: 20px;">🎉 恭喜完美通关！</h2>
-                        <p style="font-size: 1.2rem; color: #e6edf3;">最终得分：<span style="color: #fbbf24; font-weight: bold; font-size: 2rem;">${score}</span></p>
-                        <p style="color: #9ca3af; margin-top: 10px;">太棒了，所有题目全部答对！</p>
-                        <button class="btn-primary" onclick="location.reload()">再来一局</button>
-                    </div>`;
-            }
+        if (currentIndex < currentQuestions.length - 1) {
+            currentIndex++;
+            renderQuestion();
         } else {
-            showQuestion();
+            showResult();
         }
     }
 
-    // ================= 错题重做 =================
-    function startReview() {
-        const currentWrongList = [...wrongList];
-        wrongList = [];
-        isReviewMode = true;
-        resetGame(currentWrongList);
+    // 上一题
+    function prevQuestion() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            renderQuestion();
+        }
     }
-</script>
+
+    // 显示结果
+    function showResult() {
+        let correct = 0;
+        let detail = '';
+        
+        currentQuestions.forEach((q, i) => {
+            const userAns = userAnswers[i];
+            const correctAns = q.answer;
+            let isCorrect = false;
+            
+            if (q.type === 'fill') {
+                // 填空题模糊匹配
+                const ansArr = Array.isArray(correctAns) ? correctAns : [correctAns];
+                isCorrect = ansArr.some(a => userAns && userAns.trim().toLowerCase() === a.toLowerCase());
+            } else {
+                isCorrect = userAns === correctAns;
+            }
+            
+            if (isCorrect) correct++;
+            
+            detail += `<div style="margin-bottom:15px; border-bottom:1px dashed #ccc; padding-bottom:10px;">
+                <strong>${i+1}. ${q.question}</strong><br>
+                你的答案：<span style="color:${isCorrect ? 'green' : 'red'}">${userAns || '未作答'}</span><br>
+                正确答案：<span style="color:green">${Array.isArray(correctAns) ? correctAns.join('/') : correctAns}</span>
+            </div>`;
+        });
+        
+        const score = Math.round((correct / currentQuestions.length) * 100);
+        document.getElementById('scoreText').textContent = `${score} 分`;
+        document.getElementById('detailText').innerHTML = detail;
+        
+        document.getElementById('quiz').classList.add('hidden');
+        document.getElementById('result').classList.remove('hidden');
+    }
+
+    // 返回首页
+    function backHome() {
+        document.getElementById('quiz').classList.add('hidden');
+        document.getElementById('result').classList.add('hidden');
+        document.getElementById('home').classList.remove('hidden');
+        initHome();
+    }
+
+    // 页面加载完成初始化
+    window.onload = initHome;
+    </script>
 </body>
 </html>
