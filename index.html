@@ -18,31 +18,25 @@
     .header .info { font-size: 0.95rem; color: #9ca3af; }
     .header .score { color: #fbbf24; font-weight: bold; }
     .q-content { font-size: 1.15rem; line-height: 1.6; margin-bottom: 25px; font-weight: 500; }
-    
     .opts { display: flex; flex-direction: column; gap: 12px; }
     .opt-btn { background: #1e293b; border: 1px solid #334155; padding: 15px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; font-size: 1rem; }
     .opt-btn:hover { background: #2563eb; border-color: #3b82f6; }
     .opt-btn.correct { background: #064e3b; border-color: #10b981; color: #34d399; }
     .opt-btn.wrong { background: #7f1d1d; border-color: #ef4444; color: #f87171; }
-    
     .judge-btns { display: flex; gap: 12px; }
     .judge-btns .opt-btn { flex: 1; justify-content: center; }
-    
     .bottom-btns { display: flex; gap: 12px; margin-top: 20px; }
     .btn-skip { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #4b5563; background: #1f2937; color: #9ca3af; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
     .btn-skip:hover { background: #374151; color: #e6edf3; }
     .btn-reveal { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #d97706; background: rgba(217, 119, 6, 0.1); color: #fbbf24; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
     .btn-reveal:hover { background: rgba(217, 119, 6, 0.2); }
-    
     .hint-text { margin-top: 15px; color: #fbbf24; font-size: 0.95rem; display: none; text-align: center; background: rgba(251, 191, 36, 0.1); padding: 10px; border-radius: 6px; }
     .answer-reveal { margin-top: 15px; color: #34d399; font-size: 0.95rem; display: none; text-align: center; background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 6px; }
-    
     .fill-input-wrap { width: 100%; display: flex; flex-direction: column; gap: 12px; }
     .fill-input-wrap input { width: 100%; padding: 15px; border-radius: 8px; border: 1px solid #334155; background: #0b1220; color: white; font-size: 1rem; outline: none; }
     .btn-submit { width: 100%; padding: 14px; border-radius: 8px; border: none; background: #2563eb; color: white; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
     .btn-submit:hover { background: #1d4ed8; }
-
-    .badge { margin-left: 8px; background: #ef4444; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; vertical-align: middle;}
+    .badge { margin-right: 8px; background: #ef4444; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; }
 </style>
 </head>
 <body>
@@ -74,7 +68,7 @@
 </div>
 
 <script>
-    // ================= 题库数据 =================
+    // ================= 题库 =================
     const CHOICES = [
         { answer: "C", question: "计算机的两个主要组成部分是（ ）。", options: ["A.输入和输出", "B.存储和程序", "C.硬件和软件", "D.显示器和打印机"] },
         { answer: "D", question: "第一代电子计算机的主要标志是（ ）。", options: ["A.机械式", "B.机械电子式", "C.中小规模集成电路", "D.电子管"] },
@@ -128,43 +122,50 @@
         { answer: "N", question: "通常把运算器、控制器、存储器和输入/输出设备合称为计算机系统。" }
     ];
 
-    let allQuestions = [];
+    // ================= 状态 =================
     let questions = [];
     let currentIndex = 0;
     let score = 0;
-    let wrongList = []; // 错题本
+    let wrongList = [];
+    let isReviewMode = false;
+    let gameScreenHTML = '';   // 备份答题界面原始HTML（修复关键）
 
+    // ================= 开始 =================
     function startGame() {
-        // 初始化题库
+        if (!gameScreenHTML) {
+            gameScreenHTML = document.getElementById('gameScreen').innerHTML;
+        }
         let qList = [];
-        CHOICES.forEach(q => qList.push({...q, type: 'choice'}));
-        FILLS.forEach(q => qList.push({...q, type: 'fill'}));
-        JUDGES.forEach(q => qList.push({...q, type: 'judge'}));
-        
-        allQuestions = qList;
+        CHOICES.forEach(q => qList.push({ ...q, type: 'choice' }));
+        FILLS.forEach(q => qList.push({ ...q, type: 'fill' }));
+        JUDGES.forEach(q => qList.push({ ...q, type: 'judge' }));
+
         wrongList = [];
         score = 0;
+        isReviewMode = false;
         resetGame(qList);
     }
 
+    // ================= 重置开局（关键修复：先还原界面）=================
     function resetGame(qList) {
+        const gameScreen = document.getElementById('gameScreen');
+        gameScreen.innerHTML = gameScreenHTML;   // 把被结算页覆盖的答题区还原
+        gameScreen.style.display = 'block';
+
         questions = [...qList];
-        // 随机打乱
         questions.sort(() => Math.random() - 0.5);
-        
+
         document.getElementById('startScreen').style.display = 'none';
-        document.getElementById('gameScreen').style.display = 'block';
         currentIndex = 0;
         showQuestion();
     }
 
+    // ================= 渲染题目 =================
     function showQuestion() {
         const q = questions[currentIndex];
         let progressInfo = `进度：${currentIndex + 1} / ${questions.length}`;
-        
-        // 如果是错题模式，添加徽章提示
-        if(wrongList.length > 0 && questions.length === wrongList.length) {
-            progressInfo = `<span class="badge">错题模式</span> ${progressInfo}`;
+        if (isReviewMode) {
+            progressInfo = `<span class="badge">错题模式</span>` + progressInfo;
         }
 
         document.getElementById('progressText').innerHTML = progressInfo;
@@ -173,12 +174,12 @@
         document.getElementById('hintText').style.display = 'none';
         document.getElementById('answerReveal').style.display = 'none';
         document.getElementById('bottomBtns').style.display = 'flex';
-        
+
         const container = document.getElementById('optionsContainer');
         container.innerHTML = '';
         container.className = 'opts';
 
-        if(q.type === 'judge') {
+        if (q.type === 'judge') {
             container.classList.add('judge-btns');
             container.innerHTML = `
                 <div class="opt-btn" onclick="checkAnswer(this, 'Y')">✅ 正确</div>
@@ -196,12 +197,13 @@
                 const div = document.createElement('div');
                 div.className = 'opt-btn';
                 div.innerText = opt;
-                div.onclick = function() { checkAnswer(this, opt.charAt(0)); };
+                div.onclick = function () { checkAnswer(this, opt.charAt(0)); };
                 container.appendChild(div);
             });
         }
     }
 
+    // ================= 选择/判断判题 =================
     function checkAnswer(btn, userAnswer) {
         const q = questions[currentIndex];
         if (userAnswer === q.answer) {
@@ -213,51 +215,51 @@
         } else {
             btn.classList.add('wrong');
             document.getElementById('bottomBtns').style.display = 'none';
-            revealAnswer(); // 答错直接显示答案，并自动记入错题
+            revealAnswer();
         }
     }
 
+    // ================= 填空题判题 =================
     function checkFill() {
-        const val = document.getElementById('fillInput').value.trim().replace(/[、，,;]/g, ' ');
+        const input = document.getElementById('fillInput');
+        const val = input.value.trim().replace(/[、，,;]/g, ' ');
         const q = questions[currentIndex];
-        
-        let isCorrect = q.answer.every(keyword => {
+
+        const isCorrect = q.answer.every(keyword => {
             return val.toLowerCase().replace(/\s/g, '').includes(keyword.toLowerCase().replace(/\s/g, ''));
         });
 
         if (isCorrect) {
-            document.getElementById('fillInput').style.borderColor = '#10b981';
-            document.getElementById('fillInput').style.background = '#064e3b';
+            input.style.borderColor = '#10b981';
+            input.style.background = '#064e3b';
             score += 5;
             document.getElementById('scoreText').innerText = `得分：${score}`;
             document.getElementById('bottomBtns').style.display = 'none';
             setTimeout(() => { nextQuestion(); }, 600);
         } else {
-            document.getElementById('fillInput').style.borderColor = '#ef4444';
-            document.getElementById('fillInput').style.background = '#7f1d1d';
+            input.style.borderColor = '#ef4444';
+            input.style.background = '#7f1d1d';
             document.getElementById('bottomBtns').style.display = 'none';
-            revealAnswer(); // 答错直接显示答案，并自动记入错题
+            revealAnswer();
         }
     }
 
-    // 标记为错题并进入下一题
+    // ================= 底部按钮 =================
     function markAndNext() {
         addToWrongList(questions[currentIndex]);
         nextQuestion();
     }
 
-    // 显示答案，并记入错题
     function revealAndNext() {
         revealAnswer();
-        addToWrongList(questions[currentIndex]);
         document.getElementById('bottomBtns').style.display = 'none';
-        // 延迟后自动跳过
         setTimeout(() => { nextQuestion(); }, 2000);
     }
 
+    // ================= 显示答案 =================
     function revealAnswer() {
         const q = questions[currentIndex];
-        addToWrongList(q); // 只要看了答案就算错题
+        addToWrongList(q);
         const reveal = document.getElementById('answerReveal');
         if (q.type === 'fill') {
             reveal.innerText = "💡 参考答案：" + q.answer.join("、");
@@ -269,33 +271,30 @@
         reveal.style.display = 'block';
     }
 
-    // 加入错题本（去重）
+    // ================= 错题本（去重）=================
     function addToWrongList(q) {
-        let isExist = wrongList.some(w => w.question === q.question);
-        if (!isExist) {
-            wrongList.push(q);
-        }
+        const isExist = wrongList.some(w => w.question === q.question);
+        if (!isExist) wrongList.push(q);
     }
 
+    // ================= 下一题 / 结算 =================
     function nextQuestion() {
         currentIndex++;
-        if(currentIndex >= questions.length) {
-            // 本轮结束
+        if (currentIndex >= questions.length) {
             if (wrongList.length > 0) {
-                // 还有错题，进入错题模式
+                const n = wrongList.length;
                 document.getElementById('gameScreen').innerHTML = `
                     <div style="text-align: center; padding: 40px 0;">
-                        <h2 style="color: #fbbf24; font-size: 1.5rem; margin-bottom: 20px;">📝 还有 ${wrongList.length} 道错题未掌握</h2>
+                        <h2 style="color: #fbbf24; font-size: 1.5rem; margin-bottom: 20px;">📝 还有 ${n} 道错题未掌握</h2>
                         <p style="font-size: 1rem; color: #9ca3af; margin-bottom: 30px;">现在进入错题回顾模式，必须全部答对才算通关！</p>
                         <button class="btn-primary" onclick="startReview()">开始错题重做</button>
                     </div>`;
             } else {
-                // 完美通关
                 document.getElementById('gameScreen').innerHTML = `
                     <div style="text-align: center; padding: 40px 0;">
                         <h2 style="color: #10b981; font-size: 1.8rem; margin-bottom: 20px;">🎉 恭喜完美通关！</h2>
                         <p style="font-size: 1.2rem; color: #e6edf3;">最终得分：<span style="color: #fbbf24; font-weight: bold; font-size: 2rem;">${score}</span></p>
-                        <p style="color: #9ca3af; margin-top: 10px;">太棒了，所有题目一次答对！</p>
+                        <p style="color: #9ca3af; margin-top: 10px;">太棒了，所有题目全部答对！</p>
                         <button class="btn-primary" onclick="location.reload()">再来一局</button>
                     </div>`;
             }
@@ -304,12 +303,11 @@
         }
     }
 
+    // ================= 错题重做 =================
     function startReview() {
-        // 重置错题本，因为重做如果又错了，需要重新记录
-        let currentWrongList = [...wrongList];
-        wrongList = []; 
-        
-        // 用错题重新开局
+        const currentWrongList = [...wrongList];
+        wrongList = [];
+        isReviewMode = true;
         resetGame(currentWrongList);
     }
 </script>
